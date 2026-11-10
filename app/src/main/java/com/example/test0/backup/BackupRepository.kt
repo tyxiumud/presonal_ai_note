@@ -568,14 +568,12 @@ class BackupRepository(
 
     private fun dec(value: String): String = URLDecoder.decode(value, "UTF-8")
 
+    // 四种元数据注释统一转义，避免随记或聊天正文里恰好以 <!-- vault- 开头的行
+    // 被导入时误判成「下一条记录 / 下一条消息」。
     private fun escapeMetaLikeLines(text: String): String = text
         .lineSequence()
         .joinToString("\n") { line ->
-            if (line.startsWith("<!-- vault-capture ") || line.startsWith("<!-- vault-analysis ")) {
-                "\u200B$line"
-            } else {
-                line
-            }
+            if (line.startsWith("<!-- vault-")) "\u200B$line" else line
         }
 
     private fun unescapeMetaLikeLine(line: String): String =

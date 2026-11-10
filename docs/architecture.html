@@ -83,11 +83,13 @@
     · 随记可点开**整页阅览**（铺满整屏、长文可滚动看全，无放大按钮）；右上角两个图标分别打开「备份归档」和设置卡片，都不占主导航。<br>
     · 图片描述走 `/chat/completions` 的 `image_url`；语音转写走独立的 `/audio/transcriptions`（multipart）。两者结果写回 `captures.textContent` 后才进入整理与检索。<br>
     · 图片、语音各自可配「接口地址 / 模型 / 密钥」（Keystore 分别加密）：图片有「与聊天设置相同」开关，默认复用聊天连接；语音未单独配置时沿用聊天连接、只换转写模型。由存储层的 `visionConnection()` / `transcriptionConnection()` 解析。<br>
-    · 备份按日期打成 zip，**每天一个 Markdown 文件夹**（`notes.md` / `analysis.md` / `media/`），正文是可读的长文本，元数据藏在不可见的 HTML 注释里；文件名用 ASCII 防乱码，媒体用相对名，导入时重新落到新设备私有目录。<br>
+    · 备份按日期打成 zip，**每天一个 Markdown 文件夹**（`notes.md` / `analysis.md` / `media/`），另有 `chat/conversations.md` 存全部聊天会话与消息；正文是可读的长文本，元数据藏在不可见的 HTML 注释里；文件名用 ASCII 防乱码，媒体用相对名，导入时重新落到新设备私有目录。<br>
     · 设置里的「允许修改」开关和四套皮肤是即时偏好：`JournalUiState.canEdit` 控制编辑入口，`Test0Theme(skin)` 控制全局配色，都不参与数据链路。<br>
     · **单一输入框**写所有内容（无短/长笔记之分）；展示层用 `Capture.displayText` 去掉旧数据里的 `# ` 前缀；标签挂在 `captures.tags`，文字/图片/语音通用。<br>
     · 状态回流（StateFlow → 页面）按绘图约定不画反向箭头；所有跨层箭头统一自左向右，无数据源指向 UI 的反向连线。<br>
     · 聊天支持**多会话**：新增 `conversations` 表、`chat_messages` 增加 `conversationId`，聊天页标题右侧 chip 打开会话卡片切换 / 新建 / 删除；历史、重试、清空都按会话隔离，随记检索仍是全局；旧消息归入「默认对话」。<br>
+    · 备份里的聊天导入会重新分配会话 id、按「标题 + 创建时间」去重，重复导入不翻倍；旧备份没有 `chat/` 仍可导入。<br>
+    · 助手气泡「查看原文」按 `referencedCaptureIds` 找回原始随记并只读整页阅览；会话列表显示消息数与最后一条预览，空会话点「新建对话」直接复用。<br>
     · Room 升到 v6（`captures` 增加 mediaPath、tags；新增会话表与消息会话列），新增「媒体存储」把图片/语音复制进应用私有目录；Manifest 权限为 INTERNET 与 RECORD_AUDIO，后台任务 / 通知仍为「无」。
   </div>
 

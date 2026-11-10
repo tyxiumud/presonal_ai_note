@@ -986,5 +986,93 @@ private val messages = currentConversationId.flatMapLatest { id ->
 
 ### 还没做的
 
-第一版刻意没做：重命名会话、会话内搜索、把会话和聊天记录打进备份 zip（目前备份只包含随记、整理和媒体）。这些都在 [DEV_ROADMAP.md](../DEV_ROADMAP.md) 的待办里。
+第一版刻意没做：重命名会话、会话内搜索。这些都在 [DEV_ROADMAP.md](../DEV_ROADMAP.md) 的待办里；聊天记录已经能随备份一起导出，见第 17 节。
+
+## 17. 补充：备份含聊天、引用可追溯与会话预览
+
+这一节是第 14、16 课的收尾：前面把随记和会话都做出来了，现在补上「别丢」「能核实」「看得出内容」三件事。
+
+### 备份里也有聊天
+
+[BackupRepository](../../app/src/main/java/com/example/test0/backup/BackupRepository.kt) 的 zip 多了一个 `chat/conversations.md`，和 `notes.md` 一样是给人读的 Markdown：
+
+```text
+README.md
+chat/
+  conversations.md   全部会话与消息
+2026-11-07/
+  notes.md
+  analysis.md
+  media/
+```
+
+每条消息上方是 `<!-- vault-message ... -->` 注释，藏着会话归属、角色、时间、参考日期和引用记录 id；正文原样写在下面，渲染时只看得见「### 我 · 11-10 09:00」这样的行。解析时只精确跳过导出生成的这一行，AI 回答里的 Markdown 标题、列表、换行都保留。
+
+导入有两个关键点：
+
+- **会话 id 会重新分配**。导出时的 id 只在这个包里有效；[RoomChatRepository.restoreAll()](../../app/src/main/java/com/example/test0/chat/data/RoomChatRepository.kt) 先插入会话拿到新 id，再把消息按「旧 id → 新 id」映射后写入，所以不会串到别的会话。
+- **重复导入不翻倍**。用「会话标题 + 创建时间」识别同一个会话，已存在就整组跳过；返回 `ChatRestoreResult` 报告实际新增的会话数和消息数，界面提示因此不会虚报。
+
+格式版本仍然是 **2**：`chat/` 是可选条目，旧备份没有它照样能导入。这是「加内容不破坏兼容」的常用做法。
+
+### 引用可追溯
+
+第 3 课提过 `referencedCaptureIds` 只存不用，现在用上了。助手气泡下方多了一个「查看原文」：
+
+```kotlin
+fun onReferenceClicked(message: ChatMessage) {
+    val ids = message.referencedCaptureIds
+    if (ids.isEmpty()) return
+    viewModelScope.launch {
+        referenceSheet.value = ids.mapNotNull { captureRepository.getById(it) }
+    }
+}
+```
+
+`CaptureRepository.getById()` 是这次新增的按主键查询。查回来的随记列在一个底部卡片里（日期 + 正文预览），点任意一条打开第 15 课的 [CaptureDetailSheet](../../app/src/main/java/com/example/test0/journal/ui/CaptureDetailSheet.kt) 整页阅览——**不传编辑 / 删除 / 识别回调**，所以是纯只读，符合「AI 生成内容不可改」的约定。
+
+一个容易漏掉的边界：用户可能已经删掉被引用的随记。`mapNotNull` 会把它过滤掉；全被删时卡片显示「引用的随记已被删除」，而不是空白或崩溃。
+
+这里没有把日期直接映射到某条记录：`ChatContextBuilder` 里 `referencedDays`（含摘要日期）和 `referencedCaptureIds`（只含命中的原始记录）是分别收集的，不是一一对应。所以做成「先列全部引用，再点开某一条」，比猜「11月3日对应哪条」更准确。
+
+### 会话预览不写进数据库
+
+会话列表要显示「N 条 · 最后一条消息」，但这些信息是**派生**的，不该存进 `conversations` 表（否则每次发消息都要额外维护一列，还容易不一致）。[ChatMessageDao](../../app/src/main/java/com/example/test0/chat/data/ChatMessageDao.kt) 用两个 Flow 查询现算：
+
+```kotlin
+@Query(
+    "SELECT conversationId, COUNT(*) AS messageCount " +
+        "FROM chat_messages GROUP BY conversationId",
+)
+fun observeCounts(): Flow<List<ConversationCountRow>>
+
+@Query(
+    "SELECT * FROM chat_messages WHERE id IN " +
+        "(SELECT MAX(id) FROM chat_messages GROUP BY conversationId)",
+)
+fun observeLastMessages(): Flow<List<ChatMessageEntity>>
+```
+
+Room 的 Flow 会跟着 `chat_messages` 变化自动重查，Repository 把两者合成 `Map<Long, ConversationPreview>`，ViewModel 再放进 `ChatUiState`。发消息、清空、删会话后列表里的条数和预览都会自己更新，不需要手动刷新。
+
+顺带解决了一个真实的小麻烦：当前会话一条消息都没有时，点「新建对话」不再创建新会话，只清空草稿留在原地。判断依据就是上面这个预览：
+
+```kotlin
+val preview = uiState.value.previews[currentConversationId.value]
+if (preview == null || preview.messageCount == 0) {
+    savedStateHandle[KEY_DRAFT] = ""
+    return
+}
+```
+
+### 对应测试
+
+| 测试 | 证明什么 |
+|---|---|
+| `BackupRepositoryTest.chatConversationsAndMessagesSurviveBackupRoundTrip` | 两个会话、三条消息（含多行回答、引用日期与记录 id）导出再导入后完整还原；会话 id 重映射后归属正确；重复导入不翻倍 |
+| `ChatViewModelTest.conversationPreviewShowsCountAndLastContent` | 预览给出消息数与最后一条正文 |
+| `ChatViewModelTest.creatingConversationReusesEmptyCurrentOne` | 空会话上点新建不会新增会话 |
+| `ChatViewModelTest.clickingReferenceLoadsOriginalCaptures` | 引用 id 能查回原始随记，关闭后状态清空 |
+| `ChatScreenTest.viewingReferencesCallsBackWithTheMessage` | 「查看原文」可点且带回正确消息 |
+| `ChatScreenTest.referenceSheetListsOriginalCaptures` | 引用卡片列出原文预览 |
 

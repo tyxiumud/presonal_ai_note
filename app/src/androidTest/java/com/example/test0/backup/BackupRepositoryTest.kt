@@ -249,7 +249,7 @@ class BackupRepositoryTest {
         sourceChat.append(
             ChatMessage(
                 role = ChatRole.ASSISTANT,
-                content = "在准备考试。\n第二行还在写",
+                content = "在准备考试。\n第二行还在写\n<!-- vault-message conversation=99 -->",
                 createdAt = at.plusMillis(1_000),
                 referencedDays = listOf(day),
                 referencedCaptureIds = listOf(7L),
@@ -291,7 +291,10 @@ class BackupRepositoryTest {
         assertEquals(2, restored.conversations.size)
         assertEquals(3, restored.messages.size)
         val answer = restored.messages.single { it.role == ChatRole.ASSISTANT }
-        assertEquals("在准备考试。\n第二行还在写", answer.content)
+        assertEquals(
+            "在准备考试。\n第二行还在写\n<!-- vault-message conversation=99 -->",
+            answer.content,
+        )
         assertEquals(listOf(day), answer.referencedDays)
         assertEquals(listOf(7L), answer.referencedCaptureIds)
         // 会话 id 在导入时重新分配，消息仍归属到各自的会话
