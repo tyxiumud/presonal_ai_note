@@ -1,0 +1,60 @@
+# 项目专用 R8 规则。AGP 会合并 src/main/keepRules 下所有规则文件。
+# 参考：https://d.android.com/r/tools/r8/keep-rules
+
+# ---------------------------------------------------------------------------
+# 1. 按名字持久化的枚举不能改名
+#
+# 这些枚举的 name() 会写进数据库 / SharedPreferences / 备份 zip：
+#   CaptureType.name -> captures.type
+#   ChatPersona.name -> ai-settings 的 chat_persona
+#   AppSkin.name     -> ai-settings 的 app_skin
+# 一旦 R8 把枚举常量改名，旧数据就读不回来（会退回默认值，表现为设置"丢了"）。
+# 默认规则只保留 values()/valueOf()，不保证常量名不变，所以显式固定。
+# ---------------------------------------------------------------------------
+-keepclassmembers enum com.example.test0.journal.model.CaptureType {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    <fields>;
+}
+-keepclassmembers enum com.example.test0.ai.settings.ChatPersona {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    <fields>;
+}
+-keepclassmembers enum com.example.test0.ai.settings.AppSkin {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+    <fields>;
+}
+
+# ---------------------------------------------------------------------------
+# 2. Room 的实体与 DAO
+#
+# Room 生成的实现类通过反射按名字找构造和方法；room-runtime 自带的 consumer
+# rules 只保留 RoomDatabase 子类。这里把本项目自己的实体/DAO 也固定住，
+# 避免升级 Room 或调整优化范围后出现运行期找不到类的崩溃。
+# ---------------------------------------------------------------------------
+-keep class com.example.test0.journal.data.CaptureEntity { *; }
+-keep class com.example.test0.analysis.data.DailyAnalysisEntity { *; }
+-keep class com.example.test0.chat.data.ChatMessageEntity { *; }
+-keep class com.example.test0.journal.data.PersonalVaultDatabase { *; }
+-keep interface com.example.test0.journal.data.CaptureDao { *; }
+-keep interface com.example.test0.analysis.data.DailyAnalysisDao { *; }
+-keep interface com.example.test0.chat.data.ChatMessageDao { *; }
+
+# ---------------------------------------------------------------------------
+# 3. 备份 zip 用 org.json 按字符串键读写，不依赖反射；此处只做防御性保留，
+#    确保以后改成 kotlinx.serialization / Gson 时不会踩到 data class 被裁掉。
+# ---------------------------------------------------------------------------
+-keep class com.example.test0.backup.BackupManifest { *; }
+-keep class com.example.test0.backup.BackupDay { *; }
+-keep class com.example.test0.backup.BackupCapture { *; }
+-keep class com.example.test0.backup.BackupAnalysis { *; }
+-keep class com.example.test0.ai.settings.AiSettingsSnapshot { *; }
+-keep class com.example.test0.ai.settings.AiSettingsInput { *; }
+
+# ---------------------------------------------------------------------------
+# 4. 崩溃日志可读性
+# ---------------------------------------------------------------------------
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile

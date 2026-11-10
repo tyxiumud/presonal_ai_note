@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+
+# 发布签名凭据：只提交 .example 模板，真实文件必须留在本机
+keystore.properties
+*.jks
+*.keystore
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# 构建产物、IDE 状态与工具过程文件（Room schema 与 docs 需要保留）
+/app/build/
+/.idea/
+/.kotlin/
+/.screenshots/
+/.superpowers/

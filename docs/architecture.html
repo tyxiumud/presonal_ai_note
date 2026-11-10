@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人AI笔记 · 四层架构框图</title>
+<style>
+  :root {
+    --ui: #E3F2FD; --ui-line: #5B9BD5;
+    --vm: #E8F5E9; --vm-line: #6AA84F;
+    --data: #FFF8E1; --data-line: #D6A400;
+    --src: #FFE0B2; --src-line: #E69138;
+    --comp: #F3E5F5; --comp-line: #9C6FA6;
+    --ink: #26303A; --muted: #6B7684; --nav: #9AA0A6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 32px 28px 56px;
+    background: #F7F5F0; color: var(--ink);
+    font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", system-ui, sans-serif;
+  }
+  .page { max-width: 1820px; margin: 0 auto; }
+  header h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: .5px; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+  .card {
+    margin-top: 24px; padding: 12px;
+    background: #FFFDF9; border: 1px solid #E3DDD0; border-radius: 16px;
+    box-shadow: 0 2px 10px rgba(40, 40, 30, .05);
+  }
+  svg { width: 100%; height: auto; display: block; }
+  .legend {
+    margin-top: 22px; display: flex; flex-wrap: wrap; gap: 12px 28px;
+    align-items: center; font-size: 13px; color: var(--muted);
+  }
+  .legend .item { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 18px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,.16); }
+  .line-sample { width: 34px; height: 0; border-top: 2px solid #55606B; position: relative; }
+  .line-sample::after {
+    content: ""; position: absolute; right: -1px; top: -5px;
+    border-left: 7px solid #55606B; border-top: 5px solid transparent; border-bottom: 5px solid transparent;
+  }
+  .line-sample.dashed { border-top: 2px dashed var(--nav); }
+  .line-sample.dashed::after { border-left-color: var(--nav); }
+  .notes {
+    margin-top: 18px; padding: 16px 20px;
+    background: #FFFDF9; border: 1px solid #E3DDD0; border-radius: 12px;
+    font-size: 13px; line-height: 1.9; color: #43505C;
+  }
+  .notes b { color: var(--ink); }
+  footer { margin-top: 18px; font-size: 12px; color: #8B939C; }
+  @media print {
+    body { background: #fff; padding: 12px; }
+    .card { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>个人AI笔记 · 四层架构框图</h1>
+    <p>基于当前工程 <code>E:/02_Android_prj</code> 的实际代码绘制 · 从左到右：UI 层 → ViewModel / 状态层 → 数据层 → 数据源 · 可作为 ioDraw 手绘参照</p>
+  </header>
+
+  <div class="card">
+    <svg id="diagram" viewBox="0 0 1800 960" role="img" aria-label="四层架构框图"></svg>
+  </div>
+
+  <div class="legend">
+    <span class="item"><span class="swatch" style="background:var(--ui)"></span>UI 层</span>
+    <span class="item"><span class="swatch" style="background:var(--vm)"></span>ViewModel / 状态层</span>
+    <span class="item"><span class="swatch" style="background:var(--data)"></span>数据层</span>
+    <span class="item"><span class="swatch" style="background:var(--src)"></span>数据源</span>
+    <span class="item"><span class="swatch" style="background:var(--comp)"></span>交互组件子分组</span>
+    <span class="item"><span class="line-sample"></span>实线 = 调用 / 数据流</span>
+    <span class="item"><span class="line-sample dashed"></span>虚线 = 页面导航（灰）</span>
+    <span class="item">分组框 = 所属层</span>
+  </div>
+
+  <div class="notes">
+    <b>约束与约定</b><br>
+    · 交互组件只接收状态和回调，不直接读取数据源；它们位于 UI 层内的浅紫子分组框中。<br>
+    · 两条灰色虚线表示三个主页面互相可达：既可通过底部导航，也可在 `HorizontalPager` 里左右滑动切换（导航点击滚动到对应页、高亮跟随当前页）；通向「设置弹层」的虚线表示从右上角图标打开底部卡片，不是页面切换。<br>
+    · 随记可点开**整页阅览**（铺满整屏、长文可滚动看全，无放大按钮）；右上角两个图标分别打开「备份归档」和设置卡片，都不占主导航。<br>
+    · 图片描述走 `/chat/completions` 的 `image_url`；语音转写走独立的 `/audio/transcriptions`（multipart）。两者结果写回 `captures.textContent` 后才进入整理与检索。<br>
+    · 图片、语音各自可配「接口地址 / 模型 / 密钥」（Keystore 分别加密）：图片有「与聊天设置相同」开关，默认复用聊天连接；语音未单独配置时沿用聊天连接、只换转写模型。由存储层的 `visionConnection()` / `transcriptionConnection()` 解析。<br>
+    · 备份按日期打成 zip，**每天一个 Markdown 文件夹**（`notes.md` / `analysis.md` / `media/`），正文是可读的长文本，元数据藏在不可见的 HTML 注释里；文件名用 ASCII 防乱码，媒体用相对名，导入时重新落到新设备私有目录。<br>
+    · 设置里的「允许修改」开关和四套皮肤是即时偏好：`JournalUiState.canEdit` 控制编辑入口，`Test0Theme(skin)` 控制全局配色，都不参与数据链路。<br>
+    · **单一输入框**写所有内容（无短/长笔记之分）；展示层用 `Capture.displayText` 去掉旧数据里的 `# ` 前缀；标签挂在 `captures.tags`，文字/图片/语音通用。<br>
+    · 状态回流（StateFlow → 页面）按绘图约定不画反向箭头；所有跨层箭头统一自左向右，无数据源指向 UI 的反向连线。<br>
+    · 聊天支持**多会话**：新增 `conversations` 表、`chat_messages` 增加 `conversationId`，聊天页标题右侧 chip 打开会话卡片切换 / 新建 / 删除；历史、重试、清空都按会话隔离，随记检索仍是全局；旧消息归入「默认对话」。<br>
+    · Room 升到 v6（`captures` 增加 mediaPath、tags；新增会话表与消息会话列），新增「媒体存储」把图片/语音复制进应用私有目录；Manifest 权限为 INTERNET 与 RECORD_AUDIO，后台任务 / 通知仍为「无」。
+  </div>
+
+  <footer>节点文字均不超过 12 字 · 完整节点清单、连线清单与绘制步骤见同项目的架构框图说明</footer>
+</div>
+
+<script>
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("diagram");
+
+  function make(tag, attrs, text) {
+    const node = document.createElementNS(NS, tag);
+    for (const k in attrs) node.setAttribute(k, attrs[k]);
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  const C = {
+    ui: "#E3F2FD", uiLine: "#5B9BD5",
+    vm: "#E8F5E9", vmLine: "#6AA84F",
+    data: "#FFF8E1", dataLine: "#D6A400",
+    src: "#FFE0B2", srcLine: "#E69138",
+    comp: "#F3E5F5", compLine: "#9C6FA6",
+    nodeFill: "#FFFFFF", ink: "#26303A", line: "#55606B", nav: "#9AA0A6"
+  };
+
+  // ---------- 分组框 ----------
+  const groups = [
+    { id: "G1", x: 20,   y: 60, w: 440, h: 840, label: "UI 层",                 fill: C.ui,   line: C.uiLine },
+    { id: "G2", x: 490,  y: 60, w: 220, h: 840, label: "ViewModel / 状态层",    fill: C.vm,   line: C.vmLine },
+    { id: "G3", x: 740,  y: 60, w: 600, h: 840, label: "数据层",                fill: C.data, line: C.dataLine },
+    { id: "G4", x: 1370, y: 60, w: 410, h: 840, label: "数据源",                fill: C.src,  line: C.srcLine },
+    { id: "G1a", x: 38,  y: 110, w: 170, h: 580, label: "交互组件",             fill: C.comp, line: C.compLine, sub: true }
+  ];
+
+  groups.forEach(g => {
+    svg.appendChild(make("rect", {
+      x: g.x, y: g.y, width: g.w, height: g.h, rx: g.sub ? 14 : 20,
+      fill: g.fill, "fill-opacity": g.sub ? 0.75 : 0.55,
+      stroke: g.line, "stroke-width": g.sub ? 1.4 : 2,
+      "stroke-dasharray": g.sub ? "7 5" : "none"
+    }));
+    svg.appendChild(make("text", {
+      x: g.x + 16, y: g.y + 30, "font-size": g.sub ? 14 : 17,
+      "font-weight": 700, fill: g.line
+    }, g.label));
+  });
+
+  // ---------- 节点 ----------
+  // x/y/w/h, 文字, 所属颜色（描边）
+  const nodes = {
+    U1: { x: 250, y: 160, w: 190, h: 56, t: "记录页",       line: C.uiLine },
+    U2: { x: 250, y: 340, w: 190, h: 56, t: "阅览页",       line: C.uiLine },
+    U3: { x: 250, y: 520, w: 190, h: 56, t: "聊天页",       line: C.uiLine },
+    U4: { x: 250, y: 700, w: 190, h: 56, t: "设置弹层",      line: C.uiLine },
+    U9: { x: 250, y: 790, w: 190, h: 56, t: "备份弹层",      line: C.uiLine },
+
+    U5: { x: 52,  y: 160, w: 142, h: 52, t: "日期选择器",   line: C.compLine },
+    U6: { x: 52,  y: 250, w: 142, h: 52, t: "随记输入框",   line: C.compLine },
+    U7: { x: 52,  y: 490, w: 142, h: 52, t: "消息气泡",     line: C.compLine },
+    U8: { x: 52,  y: 580, w: 142, h: 52, t: "删除确认框",   line: C.compLine },
+
+    V1: { x: 505, y: 160, w: 190, h: 56, t: "记录VM",       line: C.vmLine },
+    V2: { x: 505, y: 340, w: 190, h: 56, t: "阅览VM",       line: C.vmLine },
+    V3: { x: 505, y: 520, w: 190, h: 56, t: "聊天VM",       line: C.vmLine },
+    V4: { x: 505, y: 700, w: 190, h: 56, t: "设置VM",       line: C.vmLine },
+    V5: { x: 505, y: 790, w: 190, h: 56, t: "备份VM",       line: C.vmLine },
+
+    R1: { x: 1140, y: 120, w: 170, h: 56, t: "随记仓库",     line: C.dataLine },
+    R2: { x: 1140, y: 230, w: 170, h: 56, t: "整理仓库",     line: C.dataLine },
+    R3: { x: 1140, y: 340, w: 170, h: 56, t: "聊天仓库",     line: C.dataLine },
+    R4: { x: 1140, y: 450, w: 170, h: 56, t: "设置存储",     line: C.dataLine },
+    R5: { x: 755,  y: 160, w: 160, h: 56, t: "每日整理服务", line: C.dataLine },
+    R6: { x: 755,  y: 520, w: 160, h: 56, t: "聊天服务",     line: C.dataLine },
+    R7: { x: 950,  y: 520, w: 150, h: 56, t: "上下文构建",   line: C.dataLine },
+    R8: { x: 1140, y: 620, w: 170, h: 56, t: "API 客户端",   line: C.dataLine },
+    R9: { x: 755,  y: 340, w: 160, h: 56, t: "媒体存储",     line: C.dataLine },
+    R10: { x: 755, y: 700, w: 160, h: 56, t: "媒体理解",     line: C.dataLine },
+    R11: { x: 755, y: 790, w: 160, h: 56, t: "备份归档",     line: C.dataLine },
+
+    S1: { x: 1390, y: 140, w: 370, h: 56, t: "Room 数据库 v6", line: C.srcLine },
+    S2: { x: 1390, y: 260, w: 370, h: 56, t: "每日 Markdown",  line: C.srcLine },
+    S3: { x: 1390, y: 380, w: 370, h: 56, t: "加密偏好",       line: C.srcLine },
+    S4: { x: 1390, y: 620, w: 370, h: 56, t: "外部 API",       line: C.srcLine },
+    S5: { x: 1390, y: 500, w: 370, h: 56, t: "私有媒体文件",   line: C.srcLine },
+    S6: { x: 1390, y: 740, w: 370, h: 56, t: "备份 zip",       line: C.srcLine }
+  };
+
+  const cy = n => n.y + n.h / 2;
+  const right = n => n.x + n.w;
+  const left = n => n.x;
+
+  // ---------- 连线 ----------
+  // type: solid | nav ; label 可选
+  const edges = [
+    // 交互组件 → 页面（事件回调）
+    ["U5", "U1", "solid"], ["U6", "U1", "solid"],
+    ["U7", "U3", "solid"], ["U8", "U1", "solid"], ["U8", "U3", "solid"],
+    // 页面导航（灰色虚线）
+    ["U1", "U2", "nav", "导航"], ["U2", "U3", "nav", "导航"], ["U3", "U4", "nav", "弹层"], ["U4", "U9", "nav", "并列"],
+    // UI → ViewModel
+    ["U1", "V1", "solid"], ["U2", "V2", "solid"], ["U3", "V3", "solid"], ["U4", "V4", "solid"], ["U9", "V5", "solid"],
+    // ViewModel → 数据层
+    ["V1", "R1", "solid"], ["V1", "R5", "solid"], ["V1", "R2", "solid"],
+    ["V2", "R1", "solid"], ["V2", "R2", "solid"],
+    ["V3", "R3", "solid"], ["V3", "R6", "solid"],
+    ["V4", "R4", "solid"], ["V4", "R8", "solid"],
+    ["V1", "R9", "solid"], ["V1", "R10", "solid"], ["V2", "R10", "solid"],
+    ["V5", "R11", "solid"],
+    // 数据层内部
+    ["R5", "R1", "solid"], ["R5", "R2", "solid"], ["R5", "R4", "solid"], ["R5", "R8", "solid"],
+    ["R6", "R7", "solid"], ["R6", "R3", "solid"], ["R6", "R8", "solid"],
+    ["R7", "R1", "solid"], ["R7", "R2", "solid"],
+    ["R9", "R1", "solid"],
+    ["R10", "R1", "solid"], ["R10", "R8", "solid"], ["R10", "R9", "solid"],
+    ["R11", "R1", "solid"], ["R11", "R2", "solid"], ["R11", "R9", "solid"],
+    // 数据层 → 数据源
+    ["R1", "S1", "solid", "随记表", -4],
+    ["R2", "S1", "solid", "元数据", -16],
+    ["R2", "S2", "solid", "Markdown", -12],
+    ["R3", "S1", "solid", "消息表", 16],
+    ["R4", "S3", "solid", "加密设置", -4],
+    ["R9", "S5", "solid", "图片/语音", -4],
+    ["R10", "S4", "solid", "视觉/转写", 14],
+    ["R11", "S6", "solid", "zip", -4],
+    ["R8", "S4", "solid", "HTTPS", -4]
+  ];
+
+  // 箭头
+  const defs = make("defs", {});
+  [["arrow", C.line], ["arrowNav", C.nav]].forEach(([id, color]) => {
+    const m = make("marker", {
+      id: id, viewBox: "0 0 10 10", refX: "9", refY: "5",
+      markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse"
+    });
+    m.appendChild(make("path", { d: "M 0 0 L 10 5 L 0 10 z", fill: color }));
+    defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+
+  // 先画线（在节点下层）
+  const edgeLayer = make("g", {});
+  svg.appendChild(edgeLayer);
+
+  edges.forEach(e => {
+    const from = e[0], to = e[1], type = e[2], label = e[3], labelDy = e[4] || 0;
+    const a = nodes[from], b = nodes[to];
+    const isNav = type === "nav";
+    let x1, y1, x2, y2;
+
+    if (isNav) {
+      x1 = a.x + a.w / 2; y1 = a.y + a.h;
+      x2 = b.x + b.w / 2; y2 = b.y;
+    } else {
+      // 自左向右：从源右侧到目标左侧
+      x1 = right(a); y1 = cy(a);
+      x2 = left(b);  y2 = cy(b);
+      if (x2 <= x1) { // 同层内部退化时仍保持向右
+        x2 = x1 + 24;
+      }
+    }
+
+    edgeLayer.appendChild(make("line", {
+      x1: x1, y1: y1, x2: x2, y2: y2,
+      stroke: isNav ? C.nav : C.line,
+      "stroke-width": isNav ? 2 : 1.3,
+      "stroke-opacity": isNav ? 0.95 : 0.42,
+      "stroke-dasharray": isNav ? "7 5" : "none",
+      "marker-end": isNav ? "url(#arrowNav)" : "url(#arrow)"
+    }));
+
+    if (label) {
+      const mx = isNav ? x1 + 42 : (x1 + x2) / 2;
+      const my = (isNav ? (y1 + y2) / 2 - 6 : (y1 + y2) / 2 - 7) + labelDy;
+      const w = label.length * 11 + 10;
+      edgeLayer.appendChild(make("rect", {
+        x: mx - w / 2, y: my - 12, width: w, height: 17, rx: 5,
+        fill: "#FFFDF9", "fill-opacity": 0.92, stroke: "none"
+      }));
+      edgeLayer.appendChild(make("text", {
+        x: mx, y: my, "text-anchor": "middle", "font-size": 11,
+        fill: isNav ? "#7A828C" : "#5B6672"
+      }, label));
+    }
+  });
+
+  // 再画节点
+  Object.keys(nodes).forEach(id => {
+    const n = nodes[id];
+    const g = make("g", {});
+    g.appendChild(make("rect", {
+      x: n.x, y: n.y, width: n.w, height: n.h, rx: 10,
+      fill: C.nodeFill, stroke: n.line, "stroke-width": 1.8
+    }));
+    g.appendChild(make("text", {
+      x: n.x + n.w / 2, y: n.y + n.h / 2 + 6,
+      "text-anchor": "middle", "font-size": 15, "font-weight": 600, fill: C.ink
+    }, n.t));
+    svg.appendChild(g);
+  });
+
+  // 图内小图例
+  const legend = make("g", {});
+  legend.appendChild(make("text", {
+    x: 24, y: 934, "font-size": 12, fill: "#7A828C"
+  }, "图例：实线 = 调用 / 数据流　虚线（灰） = 页面导航 / 打开弹层　分组框 = 所属层　·　交互组件只接收状态和回调，不直接读取数据源"));
+  svg.appendChild(legend);
+})();
+</script>
+</body>
+</html>
