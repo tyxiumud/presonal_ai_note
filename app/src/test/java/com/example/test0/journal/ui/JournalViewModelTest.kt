@@ -249,6 +249,69 @@ class JournalViewModelTest {
         assertEquals("删除失败，请稍后重试", viewModel.uiState.value.validationMessage)
     }
 
+    @Test
+    fun searchFiltersAcrossAllDaysByKeyword() = runTest {
+        val older = capture(9, today.minusDays(3), "上周在研究 Compose 布局")
+        repository.setAllCaptures(
+            listOf(capture(1, today, "今天写了点别的"), older),
+        )
+
+        viewModel.onSearchQueryChanged("Compose")
+
+        assertTrue(viewModel.uiState.value.isFiltering)
+        assertEquals(listOf(older), viewModel.uiState.value.searchResults)
+    }
+
+    @Test
+    fun searchAlsoMatchesTags() = runTest {
+        val tagged = capture(1, today, "一段正文", listOf("灵感"))
+        repository.setAllCaptures(listOf(tagged, capture(2, today, "另一段正文")))
+
+        viewModel.onSearchQueryChanged("灵感")
+
+        assertEquals(listOf(tagged), viewModel.uiState.value.searchResults)
+    }
+
+    @Test
+    fun availableTagsAreCollectedAndSelectingOneFilters() = runTest {
+        val work = capture(1, today, "工作记录", listOf("工作"))
+        val life = capture(2, today, "生活记录", listOf("生活"))
+        repository.setAllCaptures(listOf(work, life))
+
+        assertEquals(listOf("工作", "生活"), viewModel.uiState.value.availableTags)
+
+        viewModel.onTagSelected("工作")
+        assertEquals(listOf(work), viewModel.uiState.value.searchResults)
+
+        // 再点一次同一个标签就取消筛选
+        viewModel.onTagSelected("工作")
+        assertFalse(viewModel.uiState.value.isFiltering)
+    }
+
+    @Test
+    fun clearingFiltersResetsQueryAndTag() = runTest {
+        repository.setAllCaptures(listOf(capture(1, today, "一条记录", listOf("灵感"))))
+        viewModel.onSearchQueryChanged("一条")
+        viewModel.onTagSelected("灵感")
+
+        viewModel.onClearFilters()
+
+        assertFalse(viewModel.uiState.value.isFiltering)
+        assertEquals("", viewModel.uiState.value.searchQuery)
+        assertNull(viewModel.uiState.value.selectedTag)
+    }
+
+    @Test
+    fun savingWithDraftTagsWritesThemToTheNewCapture() = runTest {
+        viewModel.onDraftChanged("新随记")
+        viewModel.onDraftTagsChanged(listOf("工作", "灵感"))
+
+        viewModel.save()
+
+        assertEquals(listOf(1L to "工作,灵感"), repository.tagged)
+        assertTrue(viewModel.uiState.value.draftTags.isEmpty())
+    }
+
     private fun createViewModel(
         captureRepository: CaptureRepository,
         savedStateHandle: SavedStateHandle = SavedStateHandle(),
@@ -260,7 +323,12 @@ class JournalViewModelTest {
         settingsStore = FakeSettingsStore(allowEditing = true),
     )
 
-    private fun capture(id: Long, day: LocalDate, text: String): Capture {
+    private fun capture(
+        id: Long,
+        day: LocalDate,
+        text: String,
+        tags: List<String> = emptyList(),
+    ): Capture {
         val instant = day.atStartOfDay(zone).toInstant()
         return Capture(
             id = id,
@@ -269,7 +337,7 @@ class JournalViewModelTest {
             importedAt = instant,
             updatedAt = instant,
             dayKey = day,
-        )
+        ).copy(tags = tags)
     }
 
     private class FakeCaptureRepository : CaptureRepository {
@@ -284,12 +352,19 @@ class JournalViewModelTest {
         val deletedIds = mutableListOf<Long>()
         val edits = mutableListOf<Pair<Long, String>>()
         val tagged = mutableListOf<Pair<Long, String>>()
+        private val allCaptures = MutableStateFlow<List<Capture>>(emptyList())
         var saveGate: CompletableDeferred<Unit>? = null
         var failure: Throwable? = null
         var deleteFailure: Throwable? = null
         var failuresRemaining: Int = 0
 
         private val streams = mutableMapOf<LocalDate, MutableSharedFlow<List<Capture>>>()
+
+        override fun observeAll(): Flow<List<Capture>> = allCaptures
+
+        fun setAllCaptures(captures: List<Capture>) {
+            allCaptures.value = captures
+        }
 
         override fun observeByDay(day: LocalDate): Flow<List<Capture>> {
             observedDays += day

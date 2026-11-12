@@ -5,6 +5,7 @@ import com.example.test0.ai.api.ChatApi
 import com.example.test0.ai.api.DailyAnalysisApi
 import com.example.test0.ai.api.MediaUnderstandingApi
 import com.example.test0.ai.api.OpenAiCompatibleApiClient
+import com.example.test0.ai.settings.AiConnectionSettings
 import com.example.test0.ai.settings.AiSettingsStore
 import com.example.test0.ai.settings.KeystoreAiSettingsStore
 import com.example.test0.analysis.data.AtomicDailyMarkdownStore
@@ -36,7 +37,16 @@ class AppContainer(context: Context) {
     }
 
     val aiSettingsStore: AiSettingsStore by lazy {
-        KeystoreAiSettingsStore(applicationContext)
+        val defaultConnection = BuildConfig.DEFAULT_API_KEY
+            .takeIf(String::isNotBlank)
+            ?.let { key ->
+                AiConnectionSettings(
+                    baseUrl = BuildConfig.DEFAULT_API_BASE_URL,
+                    model = BuildConfig.DEFAULT_API_MODEL,
+                    apiKey = key,
+                )
+            }
+        KeystoreAiSettingsStore(applicationContext, defaultConnection = defaultConnection)
     }
 
     val dailyAnalysisApi: DailyAnalysisApi

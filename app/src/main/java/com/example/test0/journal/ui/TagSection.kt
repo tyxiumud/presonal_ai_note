@@ -36,6 +36,8 @@ fun TagSection(
     tags: List<String>,
     onChange: (List<String>) -> Unit,
     modifier: Modifier = Modifier,
+    /** 同一屏出现两个标签区时用它区分测试 tag。 */
+    testTagPrefix: String = "",
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var draft by remember { mutableStateOf("") }
@@ -59,7 +61,7 @@ fun TagSection(
                         singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .testTag("tag_input"),
+                            .testTag("${testTagPrefix}tag_input"),
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         predefined.filter { it !in tags }.forEach { label ->
@@ -85,7 +87,7 @@ fun TagSection(
                         showDialog = false
                     },
                     enabled = draft.isNotBlank(),
-                    modifier = Modifier.testTag("tag_confirm"),
+                    modifier = Modifier.testTag("${testTagPrefix}tag_confirm"),
                 ) {
                     Text(stringResource(R.string.tag_add_confirm))
                 }
@@ -114,7 +116,7 @@ fun TagSection(
             )
             TextButton(
                 onClick = { showDialog = true },
-                modifier = Modifier.testTag("tag_add"),
+                modifier = Modifier.testTag("${testTagPrefix}tag_add"),
             ) {
                 Text(stringResource(R.string.tag_add))
             }
@@ -139,7 +141,7 @@ fun TagSection(
                                 modifier = Modifier.size(16.dp),
                             )
                         },
-                        modifier = Modifier.testTag("tag_chip_$tag"),
+                        modifier = Modifier.testTag("${testTagPrefix}tag_chip_$tag"),
                     )
                 }
             }

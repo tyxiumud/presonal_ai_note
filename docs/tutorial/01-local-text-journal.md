@@ -236,3 +236,105 @@ Room 的 schema 位于 `app/schemas/`，当前可以看到 `1.json`、`2.json`�
 本课只讲本地文字随记，不展开 AI、图片、录音、后台定时任务或新闻推荐。
 
 继续学习：[第 2 课：AI 每日 Markdown 与历史阅览](02-ai-daily-markdown-and-reader.md)。
+
+## 11. 补充：搜索、标签与本机默认配置
+
+第 1 课只讲到「按日期翻随记」。用久了会发现内容只能靠日期找回来，所以后来补了三件事：搜索、标签、以及写的时候就把标签选好。
+
+### 搜索不写复杂 SQL
+
+`CaptureDao` 只多了一个跨日期的 Flow：
+
+```kotlin
+@Query("SELECT * FROM captures ORDER BY contentAtEpochMillis DESC, id DESC")
+fun observeAll(): Flow<List<CaptureEntity>>
+```
+
+[JournalViewModel](../../app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt) 把「全部随记 + 搜索词 + 选中标签」用 `combine` 合成结果，过滤在 Kotlin 里做：
+
+```kotlin
+private val searchResults: Flow<List<Capture>> = combine(
+    allCaptures, searchQuery, selectedTag,
+) { captures, query, tag ->
+    val keyword = query.trim()
+    captures.filter { capture ->
+        val matchesKeyword = keyword.isEmpty() ||
+            capture.text.contains(keyword, ignoreCase = true) ||
+            capture.tags.any { it.contains(keyword, ignoreCase = true) }
+        val matchesTag = tag == null || tag in capture.tags
+        matchesKeyword && matchesTag
+    }
+}
+```
+
+为什么不用 SQL 的 `LIKE` 或 FTS？个人笔记的数据量很小，一次内存过滤足够快，而且不需要为「逗号分隔的标签精确匹配」写易错的 SQL。可用的标签 chip 也是从同一份 Flow 里 `flatMap { it.tags }.distinct().sorted()` 现算的，不额外存表。
+
+`uiState` 现在要组合 7 个以上来源，而 `combine` 最多接 5 个 Flow，所以拆了两层：先合 `contentState`（当天内容 + 搜索状态），再和草稿、整理状态、日历、编辑开关组合。这是 Flow 参数不够用时的常规拆法。
+
+有搜索词或选中标签时，`JournalUiState.isFiltering` 为真，列表改成显示跨日期的 `searchResults`，每条上方补一个日期；清空筛选就回到按日期的时间线。
+
+### 写的时候就把标签选好
+
+`ComposerCard` 里直接放了第 15 课的 [TagSection](../../app/src/main/java/com/example/test0/journal/ui/TagSection.kt)，选中的标签存在 `JournalUiState.draftTags`。保存时：
+
+```kotlin
+val id = repository.addText(text = text, contentDate = date, now = ...)
+if (draftTags.value.isNotEmpty()) {
+    repository.updateTags(id, draftTags.value)
+}
+savedStateHandle[KEY_DRAFT] = ""
+draftTags.value = emptyList()
+```
+
+没有给 `addText()` 加参数，而是复用已有的 `updateTags()`，顺带保证「打标签不改 `updatedAt`」这条规则仍然成立。
+
+同一屏现在有两个 `TagSection`（输入框里一个、整页详情里一个），所以给组件加了 `testTagPrefix`，composer 传 `"composer_"`，界面测试才不会匹配到两个 `tag_add`。
+
+### 标签增删不用退出详情
+
+`CaptureDetailSheet` 收到的 `capture` 是点开那一刻的快照。`setTags()` 更新数据库后，这个快照不会自动变，所以以前改完标签要退出去再进来才看得到。修法是本地乐观更新：
+
+```kotlin
+var currentTags by remember(capture.id) { mutableStateOf(capture.tags) }
+
+TagSection(
+    tags = currentTags,
+    onChange = { newTags ->
+        currentTags = newTags
+        onTagsChanged(capture, newTags)
+    },
+)
+```
+
+`remember(capture.id)` 保证换一条笔记时重新初始化；`onTagsChanged` 只用到 `capture.id`，传旧快照没有影响。
+
+### 本机默认 API 配置
+
+密钥不写死在源码里，也不提交到 git。根目录下的 `api.properties`（已 gitignore）由 [build.gradle.kts](../../app/build.gradle.kts) 读成 `BuildConfig` 字段：
+
+```kotlin
+buildConfigField("String", "DEFAULT_API_KEY", buildConfigString(apiDefaults.getProperty("apiKey")))
+```
+
+[AppContainer](../../app/src/main/java/com/example/test0/AppContainer.kt) 把它组装成 `AiConnectionSettings` 传给 `KeystoreAiSettingsStore`，后者在**从未配置过**时播种一次：密钥先 AES/GCM 加密再落盘，用户后来改过或删过密钥都不会被覆盖。设置页还提供两个模型 chip 一键切换。
+
+别人 clone 这份仓库时没有 `api.properties`，BuildConfig 字段为空字符串，仍然要在设置里自己填。这是「本机开箱即用」和「仓库里不留密钥」之间的折中。
+
+### 两个页面的键盘处理不一样
+
+`MainActivity` 调了 `enableEdgeToEdge()`，系统不会替 Compose 把内容顶起来。
+
+- **记录页**的 composer 是 `LazyColumn` 里的一个 item，列表本身可滚动，再加 `imePadding()` 会和 `adjustResize` 叠出双重留白，所以去掉了。
+- **聊天页**的 composer 是 Scaffold 的 `bottomBar`，位置固定；去掉 `imePadding()` 后整个输入框会被键盘盖住。所以聊天页必须保留 `imePadding()`，让输入框浮到键盘上方。
+
+同样的「键盘遮挡」，两个页面的正确解法相反——判断依据是内容能不能自己滚动，而不是照搬一处修复。
+
+### 对应测试
+
+| 测试 | 证明什么 |
+|---|---|
+| `JournalViewModelTest` 的搜索 / 标签用例 | 关键词跨日期命中正文与标签、标签聚合与筛选、清除筛选、草稿标签随保存写入 |
+| `JournalScreenTest.detailShowsTagsAndCanAddOne` | 不退出详情，增删标签立刻可见 |
+| `JournalScreenTest.searchCardShowsResultsAndTagFilters` | 搜索框与标签 chip 可用 |
+| `JournalScreenTest.composerCanPickTagsBeforeSaving` | 写随记时就能选标签 |
+| `KeystoreAiSettingsStoreTest.defaultConnectionIsSeededOnceAndNeverOverwritesUserSettings` | 默认连接只播种一次、密钥加密、不覆盖用户配置 |

@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 data class JournalUiState(
     val selectedDate: LocalDate,
     val draft: String = "",
+    val draftTags: List<String> = emptyList(),
     val captures: List<Capture> = emptyList(),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
@@ -47,7 +48,14 @@ data class JournalUiState(
     val markedDays: Set<LocalDate> = emptySet(),
     /** 由设置里的开关决定；默认 false，即记下之后不能改。 */
     val canEdit: Boolean = false,
-)
+    val searchQuery: String = "",
+    val selectedTag: String? = null,
+    val availableTags: List<String> = emptyList(),
+    val searchResults: List<Capture> = emptyList(),
+) {
+    /** 有搜索词或选中标签时，列表改显示跨日期的搜索结果。 */
+    val isFiltering: Boolean get() = searchQuery.isNotBlank() || selectedTag != null
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class JournalViewModel(
@@ -71,6 +79,12 @@ class JournalViewModel(
         key = KEY_DRAFT,
         initialValue = "",
     )
+    private val searchQuery = savedStateHandle.getStateFlow(
+        key = KEY_SEARCH,
+        initialValue = "",
+    )
+    private val draftTags = MutableStateFlow<List<String>>(emptyList())
+    private val selectedTag = MutableStateFlow<String?>(null)
     private val isSaving = MutableStateFlow(value = false)
     private val validationMessage = MutableStateFlow<String?>(null)
     private val retryVersion = MutableStateFlow(0)
@@ -135,12 +149,64 @@ class JournalViewModel(
             }
             ?: flowOf(false)
 
+    // 跨日期搜索：全部随记来自 Room 的 Flow，关键词与标签在内存里过滤。
+    // 个人笔记量级很小，这样比写复杂的 LIKE / 标签精确匹配 SQL 更直白，也更好测。
+    private val allCaptures: Flow<List<Capture>> = repository.observeAll()
+        .catch { throwable ->
+            if (throwable is CancellationException) throw throwable
+            emit(emptyList())
+        }
+
+    private val availableTags: Flow<List<String>> = allCaptures.map { captures ->
+        captures.flatMap(Capture::tags).distinct().sorted()
+    }
+
+    private val searchResults: Flow<List<Capture>> = combine(
+        allCaptures,
+        searchQuery,
+        selectedTag,
+    ) { captures, query, tag ->
+        val keyword = query.trim()
+        captures.filter { capture ->
+            val matchesKeyword = keyword.isEmpty() ||
+                capture.text.contains(keyword, ignoreCase = true) ||
+                capture.tags.any { it.contains(keyword, ignoreCase = true) }
+            val matchesTag = tag == null || tag in capture.tags
+            matchesKeyword && matchesTag
+        }
+    }
+
+    private data class SearchState(
+        val query: String,
+        val tag: String?,
+        val tags: List<String>,
+        val results: List<Capture>,
+    )
+
+    private val searchState: Flow<SearchState> = combine(
+        searchQuery,
+        selectedTag,
+        availableTags,
+        searchResults,
+    ) { query, tag, tags, results -> SearchState(query, tag, tags, results) }
+
+    private data class ContentState(
+        val day: DayContentState,
+        val search: SearchState,
+    )
+
+    private val contentState: Flow<ContentState> = combine(
+        dayContent,
+        searchState,
+    ) { day, search -> ContentState(day, search) }
+
     private val interactionState = combine(
         draft,
         isSaving,
         validationMessage,
-    ) { text, saving, message ->
-        InteractionState(text, saving, message)
+        draftTags,
+    ) { text, saving, message, tags ->
+        InteractionState(text, saving, message, tags)
     }
 
     private val analysisInteraction = combine(
@@ -149,24 +215,29 @@ class JournalViewModel(
     ) { analyzing, message -> AnalysisInteraction(analyzing, message) }
 
     val uiState: StateFlow<JournalUiState> = combine(
-        dayContent,
+        contentState,
         interactionState,
         analysisInteraction,
         markedDays,
         canEdit,
-    ) { day, interaction, analysis, marked, editable ->
+    ) { content, interaction, analysis, marked, editable ->
         JournalUiState(
-            selectedDate = day.date,
+            selectedDate = content.day.date,
             draft = interaction.draft,
-            captures = day.captures,
-            isLoading = day.isLoading,
+            draftTags = interaction.draftTags,
+            captures = content.day.captures,
+            isLoading = content.day.isLoading,
             isSaving = interaction.isSaving,
             validationMessage = interaction.validationMessage,
-            readErrorMessage = day.readErrorMessage,
+            readErrorMessage = content.day.readErrorMessage,
             isAnalyzing = analysis.isAnalyzing,
             analysisMessage = analysis.message,
             markedDays = marked,
             canEdit = editable,
+            searchQuery = content.search.query,
+            selectedTag = content.search.tag,
+            availableTags = content.search.tags,
+            searchResults = content.search.results,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -181,6 +252,25 @@ class JournalViewModel(
     fun onDraftChanged(value: String) {
         savedStateHandle[KEY_DRAFT] = value
         validationMessage.value = null
+    }
+
+    /** 写随记时先挑好标签，保存时一起写进新记录。 */
+    fun onDraftTagsChanged(tags: List<String>) {
+        draftTags.value = tags
+    }
+
+    fun onSearchQueryChanged(value: String) {
+        savedStateHandle[KEY_SEARCH] = value
+    }
+
+    /** 再点一次已选中的标签就取消筛选。 */
+    fun onTagSelected(tag: String) {
+        selectedTag.value = if (selectedTag.value == tag) null else tag
+    }
+
+    fun onClearFilters() {
+        savedStateHandle[KEY_SEARCH] = ""
+        selectedTag.value = null
     }
 
     fun onDateSelected(date: LocalDate) {
@@ -310,12 +400,16 @@ class JournalViewModel(
             isSaving.value = true
             validationMessage.value = null
             try {
-                repository.addText(
+                val id = repository.addText(
                     text = text,
                     contentDate = date,
                     now = ZonedDateTime.now(clock),
                 )
+                if (draftTags.value.isNotEmpty()) {
+                    repository.updateTags(id, draftTags.value)
+                }
                 savedStateHandle[KEY_DRAFT] = ""
+                draftTags.value = emptyList()
             } catch (_: Exception) {
                 validationMessage.value = "保存失败，请稍后重试"
             } finally {
@@ -381,6 +475,7 @@ class JournalViewModel(
         val draft: String,
         val isSaving: Boolean,
         val validationMessage: String?,
+        val draftTags: List<String>,
     )
 
     private data class AnalysisInteraction(
@@ -391,6 +486,7 @@ class JournalViewModel(
     private companion object {
         const val KEY_SELECTED_DATE = "selected_date"
         const val KEY_DRAFT = "draft"
+        const val KEY_SEARCH = "search"
         const val READ_ERROR_MESSAGE = "读取记录失败，请重试"
     }
 }

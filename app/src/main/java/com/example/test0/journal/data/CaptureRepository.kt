@@ -14,6 +14,9 @@ interface CaptureRepository {
 
     fun observeDays(): Flow<List<LocalDate>> = flowOf(emptyList())
 
+    /** 跨日期的全部随记；默认空实现，让测试替身不用跟着改。 */
+    fun observeAll(): Flow<List<Capture>> = flowOf(emptyList())
+
     suspend fun getByDay(day: LocalDate): List<Capture> = observeByDay(day).first()
 
     /** 引用可追溯：按数据库 id 找回原始随记；记录已被删除时返回 null。 */

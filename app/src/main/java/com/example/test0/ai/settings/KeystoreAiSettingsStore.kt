@@ -19,11 +19,18 @@ class KeystoreAiSettingsStore(
     context: Context,
     private val preferencesName: String = "ai-settings",
     private val keyAlias: String = "personal-vault-ai-api-key",
+    /** 首次启动、且本机还没有任何配置时写入的默认连接；密钥仍会先加密再落盘。 */
+    defaultConnection: AiConnectionSettings? = null,
 ) : AiSettingsStore {
     private val preferences = context.applicationContext.getSharedPreferences(
         preferencesName,
         Context.MODE_PRIVATE,
     )
+
+    init {
+        seedDefaultConnection(defaultConnection)
+    }
+
     private val mutableSettings = MutableStateFlow(readSnapshot())
 
     override val settings: StateFlow<AiSettingsSnapshot> = mutableSettings.asStateFlow()
@@ -126,6 +133,20 @@ class KeystoreAiSettingsStore(
         keys.forEach { editor.remove(it) }
         check(editor.commit()) { "无法删除密钥" }
         mutableSettings.value = readSnapshot()
+    }
+
+    /** 只在「从未配置过」时播种一次；用户后来改过或删过密钥都不会被覆盖。 */
+    private fun seedDefaultConnection(default: AiConnectionSettings?) {
+        if (default == null || default.apiKey.isBlank()) return
+        if (!preferences.getString(KEY_BASE_URL, null).isNullOrEmpty()) return
+        if (decryptStored(KEY_ENCRYPTED_API_KEY, KEY_API_KEY_IV) != null) return
+        val encrypted = encrypt(default.apiKey)
+        preferences.edit()
+            .putString(KEY_BASE_URL, default.baseUrl)
+            .putString(KEY_MODEL, default.model)
+            .putString(KEY_ENCRYPTED_API_KEY, encrypted.cipherText)
+            .putString(KEY_API_KEY_IV, encrypted.iv)
+            .commit()
     }
 
     private fun resolveLlm(snapshot: AiSettingsSnapshot): AiConnectionSettings? {

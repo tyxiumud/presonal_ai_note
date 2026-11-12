@@ -18,6 +18,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -51,6 +55,9 @@ fun CaptureDetailSheet(
 ) {
     val clipboard = LocalClipboardManager.current
     val text = capture.displayText
+    // capture 是打开详情时的快照；标签在本地乐观更新，增删后立刻可见，
+    // 不必退出详情页再进来。
+    var currentTags by remember(capture.id) { mutableStateOf(capture.tags) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -140,8 +147,11 @@ fun CaptureDetailSheet(
 
                     if (onTagsChanged != null) {
                         TagSection(
-                            tags = capture.tags,
-                            onChange = { onTagsChanged(capture, it) },
+                            tags = currentTags,
+                            onChange = { newTags ->
+                                currentTags = newTags
+                                onTagsChanged(capture, newTags)
+                            },
                         )
                     }
 

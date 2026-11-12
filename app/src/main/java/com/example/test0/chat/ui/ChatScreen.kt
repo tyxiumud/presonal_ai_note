@@ -238,6 +238,9 @@ fun ChatScreen(
         }
     }
 
+    // enableEdgeToEdge() 下系统不会替 Compose 顶起内容：
+    // Scaffold 必须自己吃 IME inset，bottomBar 的输入框才会浮在键盘上方。
+    // contentWindowInsets 只取左右 safeDrawing，避免重复叠加底部 inset。
     Scaffold(
         modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,

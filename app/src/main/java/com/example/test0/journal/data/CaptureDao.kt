@@ -54,4 +54,8 @@ interface CaptureDao {
 
     @Query("SELECT DISTINCT dayKey FROM captures ORDER BY dayKey DESC")
     fun observeDayKeys(): Flow<List<String>>
+
+    /** 跨日期的全部随记，供搜索与标签筛选使用。 */
+    @Query("SELECT * FROM captures ORDER BY contentAtEpochMillis DESC, id DESC")
+    fun observeAll(): Flow<List<CaptureEntity>>
 }

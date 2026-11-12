@@ -86,6 +86,9 @@
     · 备份按日期打成 zip，**每天一个 Markdown 文件夹**（`notes.md` / `analysis.md` / `media/`），另有 `chat/conversations.md` 存全部聊天会话与消息；正文是可读的长文本，元数据藏在不可见的 HTML 注释里；文件名用 ASCII 防乱码，媒体用相对名，导入时重新落到新设备私有目录。<br>
     · 设置里的「允许修改」开关和四套皮肤是即时偏好：`JournalUiState.canEdit` 控制编辑入口，`Test0Theme(skin)` 控制全局配色，都不参与数据链路。<br>
     · **单一输入框**写所有内容（无短/长笔记之分）；展示层用 `Capture.displayText` 去掉旧数据里的 `# ` 前缀；标签挂在 `captures.tags`，文字/图片/语音通用。<br>
+    · 记录页顶部有**全局搜索 + 标签筛选**：`CaptureDao.observeAll()` 跨日期取全部随记，关键词与标签在 ViewModel 里过滤（不引入 FTS）；输入框内可直接选标签，整页详情里增删标签即时生效。<br>
+    · 默认 API 连接从 gitignored 的 `api.properties` 经 `BuildConfig` 注入，首次启动播种到 Keystore 加密存储，设置页可一键切换 flash / pro 模型；仓库里不留密钥。<br>
+    · 键盘处理分两种：记录页 composer 在可滚动列表里，不用 `imePadding()`；聊天页 composer 是 Scaffold 的 `bottomBar`，`enableEdgeToEdge()` 下必须吃 `imePadding()` 才不会被键盘盖住。<br>
     · 状态回流（StateFlow → 页面）按绘图约定不画反向箭头；所有跨层箭头统一自左向右，无数据源指向 UI 的反向连线。<br>
     · 聊天支持**多会话**：新增 `conversations` 表、`chat_messages` 增加 `conversationId`，聊天页标题右侧 chip 打开会话卡片切换 / 新建 / 删除；历史、重试、清空都按会话隔离，随记检索仍是全局；旧消息归入「默认对话」。<br>
     · 备份里的聊天导入会重新分配会话 id、按「标题 + 创建时间」去重，重复导入不翻倍；旧备份没有 `chat/` 仍可导入。<br>

@@ -4,7 +4,10 @@
     <string name="journal_home_subtitle">把今天和以前的事，随手放进来</string>
     <string name="journal_home_today">今天</string>
     <string name="journal_home_all">全部</string>
-    <string name="journal_home_search">查找</string>
+    <string name="journal_home_search">查找随记内容或标签</string>
+    <string name="journal_search_results">搜索结果</string>
+    <string name="journal_search_empty">没有找到匹配的随记</string>
+    <string name="journal_search_clear">清除筛选</string>
     <string name="journal_add">写一条</string>
     <string name="journal_add_image">图片</string>
     <string name="journal_add_audio">语音</string>
@@ -118,7 +121,8 @@
     <string name="settings_base_url">API 地址</string>
     <string name="settings_model">模型名称</string>
     <string name="settings_api_key">API 密钥</string>
-    <string name="settings_api_key_saved">API 密钥（已安全保存，留空表示不更换）</string>
+    <string name="settings_api_key_saved">API 密钥（已保存）</string>
+    <string name="settings_api_key_saved_hint">已用 Android Keystore 加密保存；留空表示不更换现有密钥</string>
     <string name="settings_include_tasks">整理任务</string>
     <string name="settings_include_suggestions">温和建议</string>
     <string name="settings_include_reflections">思考问题</string>

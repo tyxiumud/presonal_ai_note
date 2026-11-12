@@ -4,6 +4,9 @@
 
 # 发布签名凭据：只提交 .example 模板，真实文件必须留在本机
 keystore.properties
+
+# 本机默认 AI 连接（含密钥），不进版本库
+api.properties
 *.jks
 *.keystore
 /.idea/caches

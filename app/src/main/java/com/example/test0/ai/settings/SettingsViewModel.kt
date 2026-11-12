@@ -1,6 +1,7 @@
 package com.example.test0.ai.settings
 
 import androidx.lifecycle.ViewModel
+import com.example.test0.BuildConfig
 import com.example.test0.ai.api.DailyAnalysisApi
 import kotlinx.coroutines.CancellationException
 import java.net.URI
@@ -14,6 +15,8 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val baseUrl: String = "",
     val model: String = "",
+    /** 本机 api.properties 里给出的可选模型，设置页显示成一键切换 chip。 */
+    val modelPresets: List<String> = emptyList(),
     val apiKeyDraft: String = "",
     val hasApiKey: Boolean = false,
     val includeTasks: Boolean = true,
@@ -40,8 +43,13 @@ class SettingsViewModel(
     private val store: AiSettingsStore,
     private val api: DailyAnalysisApi? = null,
 ) : ViewModel() {
+    private val modelPresets = listOf(
+        BuildConfig.DEFAULT_API_MODEL,
+        BuildConfig.DEFAULT_API_ALT_MODEL,
+    ).filter(String::isNotBlank).distinct()
+
     private val mutableUiState = MutableStateFlow(
-        store.settings.value.toUiState(),
+        store.settings.value.toUiState().copy(modelPresets = modelPresets),
     )
     val uiState: StateFlow<SettingsUiState> = mutableUiState.asStateFlow()
 

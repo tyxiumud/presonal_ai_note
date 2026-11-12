@@ -56,6 +56,8 @@ internal class FakeCaptureRepository(
     override fun observeDays(): Flow<List<LocalDate>> =
         flowOf(values.keys.sortedDescending())
 
+    override fun observeAll(): Flow<List<Capture>> = flowOf(values.values.flatten())
+
     override fun observeByDay(day: LocalDate): Flow<List<Capture>> =
         flowOf(values[day].orEmpty())
 

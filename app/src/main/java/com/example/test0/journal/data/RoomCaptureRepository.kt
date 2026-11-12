@@ -20,6 +20,9 @@ class RoomCaptureRepository(
     override fun observeDays(): Flow<List<LocalDate>> =
         captureDao.observeDayKeys().map { keys -> keys.map(LocalDate::parse) }
 
+    override fun observeAll(): Flow<List<Capture>> =
+        captureDao.observeAll().map { entities -> entities.map(CaptureEntity::toModel) }
+
     override suspend fun getByDay(day: LocalDate): List<Capture> =
         captureDao.getByDay(day.toString()).map(CaptureEntity::toModel)
 

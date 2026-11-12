@@ -12,6 +12,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.example.test0.journal.model.Capture
@@ -292,6 +293,66 @@ class JournalScreenTest {
         composeRule.onNodeWithTag("tag_confirm").performClick()
 
         assertEquals(listOf("工作", "灵感"), changedTags)
+        // 不退出详情，新增的标签立刻可见；删除也一样立即消失
+        composeRule.onNodeWithTag("tag_chip_灵感").assertIsDisplayed()
+        composeRule.onNodeWithTag("tag_chip_工作").performClick()
+        composeRule.onNodeWithTag("tag_chip_工作").assertDoesNotExist()
+        assertEquals(listOf("灵感"), changedTags)
+    }
+
+    @Test
+    fun searchCardShowsResultsAndTagFilters() {
+        val result = capture(1, "命中布局的记录", "2026-11-03T01:00:00Z")
+        var query by mutableStateOf("布局")
+        var selectedTag: String? = null
+        composeRule.setContent {
+            JournalScreen(
+                state = JournalUiState(
+                    selectedDate = today,
+                    searchQuery = query,
+                    availableTags = listOf("工作"),
+                    searchResults = listOf(result),
+                ),
+                today = today,
+                onDraftChanged = {},
+                onDateSelected = {},
+                onSave = {},
+                onRetry = {},
+                onSearchQueryChanged = { query = it },
+                onTagSelected = { selectedTag = it },
+            )
+        }
+
+        composeRule.onNodeWithTag("journal_search").assertIsDisplayed()
+        composeRule.onNodeWithText("搜索结果").assertIsDisplayed()
+        composeRule.onNodeWithTag("journal_tag_工作").performClick()
+        assertEquals("工作", selectedTag)
+
+        composeRule.onNodeWithTag("journal_search").performTextClearance()
+        composeRule.onNodeWithTag("journal_search").performTextInput("新的关键词")
+        assertEquals("新的关键词", query)
+    }
+
+    @Test
+    fun composerCanPickTagsBeforeSaving() {
+        var tags: List<String>? = null
+        composeRule.setContent {
+            JournalScreen(
+                state = JournalUiState(selectedDate = today),
+                today = today,
+                onDraftChanged = {},
+                onDateSelected = {},
+                onSave = {},
+                onRetry = {},
+                onDraftTagsChanged = { tags = it },
+            )
+        }
+
+        composeRule.onNodeWithTag("composer_tag_add").performScrollTo().performClick()
+        composeRule.onNodeWithTag("composer_tag_input").performTextInput("灵感")
+        composeRule.onNodeWithTag("composer_tag_confirm").performClick()
+
+        assertEquals(listOf("灵感"), tags)
     }
 
     @Test

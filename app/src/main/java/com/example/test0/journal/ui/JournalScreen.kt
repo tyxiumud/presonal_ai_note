@@ -10,6 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,8 +35,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -128,6 +132,10 @@ fun JournalRoute(
         onEditCapture = viewModel::editCapture,
         onRecognizeCapture = viewModel::recognizeMedia,
         onTagsChanged = viewModel::setTags,
+        onDraftTagsChanged = viewModel::onDraftTagsChanged,
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onTagSelected = viewModel::onTagSelected,
+        onClearFilters = viewModel::onClearFilters,
         onPickImage = { imagePicker.launch(arrayOf("image/*")) },
         onPickAudio = { recordPermission.launch(Manifest.permission.RECORD_AUDIO) },
     )
@@ -149,6 +157,10 @@ fun JournalScreen(
     onPickAudio: () -> Unit = {},
     onRecognizeCapture: (Capture) -> Unit = {},
     onTagsChanged: (Capture, List<String>) -> Unit = { _, _ -> },
+    onDraftTagsChanged: (List<String>) -> Unit = {},
+    onSearchQueryChanged: (String) -> Unit = {},
+    onTagSelected: (String) -> Unit = {},
+    onClearFilters: () -> Unit = {},
 ) {
     var showDatePicker by remember { mutableStateOf(value = false) }
     var pendingDelete by remember { mutableStateOf<Capture?>(null) }
@@ -265,10 +277,20 @@ fun JournalScreen(
             }
 
             item {
+                SearchCard(
+                    state = state,
+                    onQueryChanged = onSearchQueryChanged,
+                    onTagSelected = onTagSelected,
+                    onClearFilters = onClearFilters,
+                )
+            }
+
+            item {
                 ComposerCard(
                     state = state,
                     focusRequester = inputFocus,
                     onDraftChanged = onDraftChanged,
+                    onDraftTagsChanged = onDraftTagsChanged,
                     onSave = onSave,
                     onAnalyze = onAnalyze,
                     onPickImage = onPickImage,
@@ -278,12 +300,50 @@ fun JournalScreen(
 
             item {
                 SectionTitle(
-                    text = stringResource(R.string.journal_timeline_title),
-                    trailing = "${state.captures.size} 条",
+                    text = if (state.isFiltering) {
+                        stringResource(R.string.journal_search_results)
+                    } else {
+                        stringResource(R.string.journal_timeline_title)
+                    },
+                    trailing = "${
+                        if (state.isFiltering) state.searchResults.size else state.captures.size
+                    } 条",
                 )
             }
 
             when {
+                state.isFiltering -> {
+                    if (state.searchResults.isEmpty()) {
+                        item {
+                            VaultEmptyState(
+                                text = stringResource(R.string.journal_search_empty),
+                                iconRes = R.drawable.ic_nav_journal,
+                            )
+                        }
+                    } else {
+                        items(state.searchResults, key = Capture::id) { capture ->
+                            Column {
+                                Text(
+                                    text = formatDate(capture.dayKey),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(bottom = 6.dp),
+                                )
+                                CaptureNoteCard(
+                                    capture = capture,
+                                    canEdit = state.canEdit,
+                                    onOpen = { pendingDetail = capture },
+                                    onEdit = { pendingEdit = capture },
+                                    onDelete = { pendingDelete = capture },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(176.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+
                 state.readErrorMessage != null -> item {
                     MessageCard(
                         message = state.readErrorMessage,
@@ -460,11 +520,70 @@ private fun DateChips(
     }
 }
 
+/** 搜索 + 标签筛选：关键词跨日期查正文与标签，chip 从已有随记自动聚合。 */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SearchCard(
+    state: JournalUiState,
+    onQueryChanged: (String) -> Unit,
+    onTagSelected: (String) -> Unit,
+    onClearFilters: () -> Unit,
+) {
+    VaultCard {
+        OutlinedTextField(
+            value = state.searchQuery,
+            onValueChange = onQueryChanged,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("journal_search"),
+            placeholder = { Text(stringResource(R.string.journal_home_search)) },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_nav_reader),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            trailingIcon = {
+                if (state.isFiltering) {
+                    IconButton(
+                        onClick = onClearFilters,
+                        modifier = Modifier.testTag("journal_search_clear"),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_close_small),
+                            contentDescription = stringResource(R.string.journal_search_clear),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+            },
+            singleLine = true,
+            shape = MaterialTheme.shapes.medium,
+        )
+        if (state.availableTags.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.availableTags.forEach { tag ->
+                    FilterChip(
+                        selected = state.selectedTag == tag,
+                        onClick = { onTagSelected(tag) },
+                        label = { Text(tag) },
+                        modifier = Modifier.testTag("journal_tag_$tag"),
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun ComposerCard(
     state: JournalUiState,
     focusRequester: FocusRequester,
     onDraftChanged: (String) -> Unit,
+    onDraftTagsChanged: (List<String>) -> Unit,
     onSave: () -> Unit,
     onAnalyze: () -> Unit,
     onPickImage: () -> Unit,
@@ -493,6 +612,12 @@ private fun ComposerCard(
             text = stringResource(R.string.journal_input_support),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(12.dp))
+        TagSection(
+            tags = state.draftTags,
+            onChange = onDraftTagsChanged,
+            testTagPrefix = "composer_",
         )
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
