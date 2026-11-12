@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -238,11 +237,10 @@ fun ChatScreen(
         }
     }
 
-    // enableEdgeToEdge() 下系统不会替 Compose 顶起内容：
-    // Scaffold 必须自己吃 IME inset，bottomBar 的输入框才会浮在键盘上方。
-    // contentWindowInsets 只取左右 safeDrawing，避免重复叠加底部 inset。
+    // IME inset 由外层 PersonalVaultApp 统一处理（键盘弹出时整页上移、隐藏底部导航）。
+    // 这里不再重复加 imePadding()，否则输入框和键盘之间会空出一段。
+    // contentWindowInsets 只取左右 safeDrawing，避免底部 inset 叠加。
     Scaffold(
-        modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
         bottomBar = {

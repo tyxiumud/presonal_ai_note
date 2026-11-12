@@ -320,14 +320,35 @@ buildConfigField("String", "DEFAULT_API_KEY", buildConfigString(apiDefaults.getP
 
 别人 clone 这份仓库时没有 `api.properties`，BuildConfig 字段为空字符串，仍然要在设置里自己填。这是「本机开箱即用」和「仓库里不留密钥」之间的折中。
 
-### 两个页面的键盘处理不一样
+### 键盘 inset 由外层统一处理
 
-`MainActivity` 调了 `enableEdgeToEdge()`，系统不会替 Compose 把内容顶起来。
+`MainActivity` 调了 `enableEdgeToEdge()`，系统不会替 Compose 把内容顶起来。试过两种局部修法都不理想：
 
-- **记录页**的 composer 是 `LazyColumn` 里的一个 item，列表本身可滚动，再加 `imePadding()` 会和 `adjustResize` 叠出双重留白，所以去掉了。
-- **聊天页**的 composer 是 Scaffold 的 `bottomBar`，位置固定；去掉 `imePadding()` 后整个输入框会被键盘盖住。所以聊天页必须保留 `imePadding()`，让输入框浮到键盘上方。
+- 记录页去掉 `imePadding()` 解决了双重留白，但照搬到聊天页会让输入框整个被键盘盖住；
+- 聊天页加回 `imePadding()` 后输入框可见了，却因为外层底部导航仍占位，在输入框和键盘之间空出一段。
 
-同样的「键盘遮挡」，两个页面的正确解法相反——判断依据是内容能不能自己滚动，而不是照搬一处修复。
+最终改成由外层 [PersonalVaultApp](../../app/src/main/java/com/example/test0/ui/PersonalVaultApp.kt) 统一处理：
+
+```kotlin
+val keyboardVisible = WindowInsets.isImeVisible
+
+Scaffold(
+    modifier = Modifier.imePadding(),
+    bottomBar = {
+        if (!keyboardVisible) {
+            NavigationBar(...) { /* 三个 Tab */ }
+        }
+    },
+)
+```
+
+- 整页（含三个 Tab）一起上移到键盘上方；
+- 键盘弹出时隐藏底部导航，不再占着键盘后面那块位置；
+- 内层聊天页与记录页都不再加自己的 `imePadding()`，避免叠加。
+
+结果：聊天页 composer 底部 y≈1485、键盘顶部 y≈1512，中间没有空白；输入框既不被盖住，也不悬在半空。
+
+教训是：**嵌套 Scaffold 时，IME inset 只在一层处理**。在哪一层加，决定了输入框与键盘之间会不会多出一段。
 
 ### 对应测试
 

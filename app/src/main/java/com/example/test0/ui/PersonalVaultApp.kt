@@ -9,11 +9,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -73,6 +76,7 @@ fun PersonalVaultApp(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PersonalVaultApp(
     journalContent: @Composable () -> Unit,
@@ -88,6 +92,9 @@ fun PersonalVaultApp(
     val pagerState = rememberPagerState { sections.size }
     val scope = rememberCoroutineScope()
     val selected = sections[pagerState.currentPage]
+    // 键盘弹出时由外层统一把页面压到键盘上方，并隐藏底部导航。
+    // 若只让聊天页自己吃 IME inset，底部导航仍占位，输入框和键盘之间会空出一段。
+    val keyboardVisible = WindowInsets.isImeVisible
 
     if (showBackup) {
         BottomCard(onDismiss = { showBackup = false }) {
@@ -103,6 +110,7 @@ fun PersonalVaultApp(
     }
 
     Scaffold(
+        modifier = Modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
@@ -137,43 +145,45 @@ fun PersonalVaultApp(
             }
         },
         bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 14.dp,
-            ) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 0.dp,
+            if (!keyboardVisible) {
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 14.dp,
                 ) {
-                    sections.forEach { section ->
-                        NavigationBarItem(
-                            selected = section == selected,
-                            onClick = {
-                                scope.launch {
-                                    pagerState.animateScrollToPage(sections.indexOf(section))
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(section.icon),
-                                    contentDescription = null,
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(section.label),
-                                    style = MaterialTheme.typography.labelMedium,
-                                )
-                            },
-                            alwaysShowLabel = true,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            ),
-                        )
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 0.dp,
+                    ) {
+                        sections.forEach { section ->
+                            NavigationBarItem(
+                                selected = section == selected,
+                                onClick = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(sections.indexOf(section))
+                                    }
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(section.icon),
+                                        contentDescription = null,
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        text = stringResource(section.label),
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                },
+                                alwaysShowLabel = true,
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.primary,
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                ),
+                            )
+                        }
                     }
                 }
             }
