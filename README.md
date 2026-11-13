@@ -17,7 +17,20 @@
 
 - 随记、整理结果、聊天记录、媒体文件都存**本机 App 私有目录**（Room + 文件），不上传、无账号、无埋点。
 - 唯一联网的地方是你**自己配置的 AI 接口**（聊天 / 整理 / 视觉 / 转写）。不配置也能用：随记、搜索、阅览、备份全是本地功能。
-- API Key 经 Android Keystore 加密后保存，不写进源码，也不进版本库。
+- API Key 经 Android Keystore 加密后保存，不写进版本库；但**本机 `api.properties` 里填的默认密钥会编译进 APK**，详见下一节。
+
+## 安装包里的密钥（分发前务必确认）
+
+`api.properties` 的 4 个值会被写进 `BuildConfig`，其中 `apiKey` 以**明文字符串**存在于 APK 的 `classes.dex` 里，反编译或直接提取字符串就能拿到。debug、release、androidTest 三种构建都一样，`isMinifyEnabled` / R8 不会消除它：当 `api.properties` 的 `apiKey` 非空时，这三个产物的 dex 中都能检索到该字面量。
+
+因此：
+
+- **不要把本机构建的 APK 发给别人、传网盘、传 GitHub Release 或应用市场**，除非先清空 `api.properties` 里的 `apiKey` 并重新构建。
+- **推荐做法**：`api.properties` 只填 `apiBaseUrl` / `apiModel` / `apiAltModel`，`apiKey` 一律留空；密钥在 App「设置」页填写，由 Android Keystore 加密保存，完全不参与编译。
+- 从本仓库 clone 后不创建 `api.properties`（或 `apiKey` 留空）构建出的包不含任何密钥，可以安全分发。
+- 如果含密钥的包已经分发过，请到 AI 服务商后台**撤销并重新生成密钥**，按已泄露处理，不要只删本机文件。
+
+仓库侧是干净的：`.gitignore` 排除了 `api.properties`、`keystore.properties`、`local.properties`、`*.jks` 和 `app/build/`，**版本库和 GitHub 上只有源码，既没有密钥也没有安装包**。
 
 ## 构建
 
@@ -41,7 +54,7 @@ cp api.properties.example api.properties   # 可选，见下
 | `apiAltModel` | 设置页一键切换的备用模型 |
 | `apiKey` | 默认密钥 |
 
-> ⚠️ 这些值会被编译进 `BuildConfig`，**不要把填了真实密钥的构建产物分发给别人**。正式使用请在 App 设置页填写，密钥由 Keystore 加密保存。
+> ⚠️ `apiKey` 会明文编译进 APK，请留空；原因和分发前检查见上文「安装包里的密钥」。
 
 ### 发布签名
 
