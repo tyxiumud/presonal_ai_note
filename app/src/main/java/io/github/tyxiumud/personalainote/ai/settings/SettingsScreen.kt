@@ -152,19 +152,6 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .testTag("settings_model"),
             )
-            if (state.modelPresets.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    state.modelPresets.forEach { preset ->
-                        FilterChip(
-                            selected = state.model == preset,
-                            onClick = { onModelChanged(preset) },
-                            label = { Text(preset) },
-                            modifier = Modifier.testTag("settings_model_preset_$preset"),
-                        )
-                    }
-                }
-            }
             Spacer(Modifier.height(10.dp))
             OutlinedTextField(
                 value = state.apiKeyDraft,

@@ -17,18 +17,6 @@ val keystoreProperties = Properties().apply {
 }
 val hasReleaseKeystore = keystoreProperties.getProperty("storeFile") != null
 
-// 本机默认 AI 连接：只从 gitignored 的 api.properties 读取，密钥不进版本库，
-// 也不写死在源码里。别人 clone 后没有这份文件，仍然需要在设置里自行配置。
-val apiDefaults = Properties().apply {
-    val file = rootProject.file("api.properties")
-    if (file.isFile) {
-        file.inputStream().use(::load)
-    }
-}
-
-private fun buildConfigString(value: String?): String =
-    "\"" + value.orEmpty().replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-
 android {
     namespace = "io.github.tyxiumud.personalainote"
     compileSdk {
@@ -43,27 +31,6 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        buildConfigField(
-            "String",
-            "DEFAULT_API_BASE_URL",
-            buildConfigString(apiDefaults.getProperty("apiBaseUrl")),
-        )
-        buildConfigField(
-            "String",
-            "DEFAULT_API_MODEL",
-            buildConfigString(apiDefaults.getProperty("apiModel")),
-        )
-        buildConfigField(
-            "String",
-            "DEFAULT_API_ALT_MODEL",
-            buildConfigString(apiDefaults.getProperty("apiAltModel")),
-        )
-        buildConfigField(
-            "String",
-            "DEFAULT_API_KEY",
-            buildConfigString(apiDefaults.getProperty("apiKey")),
-        )
     }
 
     signingConfigs {
@@ -105,7 +72,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 

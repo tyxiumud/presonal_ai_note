@@ -308,17 +308,17 @@ TagSection(
 
 `remember(capture.id)` 保证换一条笔记时重新初始化；`onTagsChanged` 只用到 `capture.id`，传旧快照没有影响。
 
-### 本机默认 API 配置
+### API 配置只存在本机
 
-密钥不写死在源码里，也不提交到 git。根目录下的 `api.properties`（已 gitignore）由 [build.gradle.kts](../../app/build.gradle.kts) 读成 `BuildConfig` 字段：
+源码和构建产物里没有任何接口地址、模型名或密钥。首次启动后，用户在「设置」页自己填写，`KeystoreAiSettingsStore` 用 Android Keystore 加密密钥再写进 SharedPreferences：
 
 ```kotlin
-buildConfigField("String", "DEFAULT_API_KEY", buildConfigString(apiDefaults.getProperty("apiKey")))
+val encrypted = encrypt(plain)
+editor.putString(KEY_ENCRYPTED_API_KEY, encrypted.cipherText)
+    .putString(KEY_API_KEY_IV, encrypted.iv)
 ```
 
-[AppContainer](../../app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt) 把它组装成 `AiConnectionSettings` 传给 `KeystoreAiSettingsStore`，后者在**从未配置过**时播种一次：密钥先 AES/GCM 加密再落盘，用户后来改过或删过密钥都不会被覆盖。设置页还提供两个模型 chip 一键切换。
-
-别人 clone 这份仓库时没有 `api.properties`，BuildConfig 字段为空字符串，仍然要在设置里自己填。这是「本机开箱即用」和「仓库里不留密钥」之间的折中。
+这样做的好处是仓库干净、分发出去的 APK 也不含他人凭据；代价是每台设备首次使用都要手动配置一次。密钥明文既不出现在源码里，也不出现在偏好文件里（有设备测试覆盖）。
 
 ### 键盘 inset 由外层统一处理
 

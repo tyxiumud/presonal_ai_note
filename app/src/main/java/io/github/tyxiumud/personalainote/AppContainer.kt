@@ -5,7 +5,6 @@ import io.github.tyxiumud.personalainote.ai.api.ChatApi
 import io.github.tyxiumud.personalainote.ai.api.DailyAnalysisApi
 import io.github.tyxiumud.personalainote.ai.api.MediaUnderstandingApi
 import io.github.tyxiumud.personalainote.ai.api.OpenAiCompatibleApiClient
-import io.github.tyxiumud.personalainote.ai.settings.AiConnectionSettings
 import io.github.tyxiumud.personalainote.ai.settings.AiSettingsStore
 import io.github.tyxiumud.personalainote.ai.settings.KeystoreAiSettingsStore
 import io.github.tyxiumud.personalainote.analysis.data.AtomicDailyMarkdownStore
@@ -37,16 +36,7 @@ class AppContainer(context: Context) {
     }
 
     val aiSettingsStore: AiSettingsStore by lazy {
-        val defaultConnection = BuildConfig.DEFAULT_API_KEY
-            .takeIf(String::isNotBlank)
-            ?.let { key ->
-                AiConnectionSettings(
-                    baseUrl = BuildConfig.DEFAULT_API_BASE_URL,
-                    model = BuildConfig.DEFAULT_API_MODEL,
-                    apiKey = key,
-                )
-            }
-        KeystoreAiSettingsStore(applicationContext, defaultConnection = defaultConnection)
+        KeystoreAiSettingsStore(applicationContext)
     }
 
     val dailyAnalysisApi: DailyAnalysisApi

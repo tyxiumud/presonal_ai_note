@@ -1,64 +1,93 @@
+<div align="center">
+
 # Personal AI Note
 
-一个**本地优先**的 Android 随记应用：随手记下文字、图片、录音，让自选的 AI 服务把当天内容整理成 Markdown，再基于自己的历史记录聊天，回答里可以点回被引用的原始随记。
+**随手记下，交给 AI 整理，再随时问它。**
 
-> 这是个人开源项目，处于早期阶段，接口与数据格式仍可能变化。项目最初按教学 Demo 设计，代码与文档保留了较完整的注释和讲解。
+一个本地优先的 Android 随记应用：文字、图片、语音随手记，每天整理成 Markdown，再基于自己的历史记录聊天。不上传、无账号、无埋点。
 
-## 它能做什么
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white)
+![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202026.02-4285F4?logo=jetpackcompose&logoColor=white)
+![minSdk](https://img.shields.io/badge/minSdk-24-3DDC84?logo=android&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-- **随记**：按日期记录文字 / 图片 / 录音，可补录过去的日期；全局搜索与标签筛选，写的时候就能选标签。
-- **每日整理**：调用 OpenAI-compatible 接口生成结构化结果，落到本地 `analysis.md`；任务、建议、回顾栏目可在设置里开关。
-- **本地上下文聊天**：支持多会话。回答参考最近的记录（默认近 7 天、关键词检索、约 2000 字符预算），气泡下「查看原文」能逐条回溯真正被引用的随记。
-- **图片与语音**：图片压缩后交给视觉模型生成描述，录音交给转写模型，结果一并纳入检索。
-- **备份与迁移**：按日期导出 zip，每天一个目录，含 `notes.md`、`analysis.md`、`media/` 原文件与 `chat/conversations.md`。Markdown 人可读，导入时按日期合并、已有日期整日跳过；旧 JSON 格式备份仍可导入。
-- **外观与人格**：4 套配色、3 种聊天人格，只影响呈现，不改数据与检索逻辑。
+[功能](#功能) · [截图](#截图) · [快速开始](#快速开始) · [从源码构建](#从源码构建) · [文档](#文档) · [路线图](#路线图)
 
-## 数据在哪里
+</div>
 
-- 随记、整理结果、聊天记录、媒体文件都存**本机 App 私有目录**（Room + 文件），不上传、无账号、无埋点。
-- 唯一联网的地方是你**自己配置的 AI 接口**（聊天 / 整理 / 视觉 / 转写）。不配置也能用：随记、搜索、阅览、备份全是本地功能。
-- API Key 经 Android Keystore 加密后保存，不写进版本库；但**本机 `api.properties` 里填的默认密钥会编译进 APK**，详见下一节。
+---
 
-## 安装包里的密钥（分发前务必确认）
+## 功能
 
-`api.properties` 的 4 个值会被写进 `BuildConfig`，其中 `apiKey` 以**明文字符串**存在于 APK 的 `classes.dex` 里，反编译或直接提取字符串就能拿到。debug、release、androidTest 三种构建都一样，`isMinifyEnabled` / R8 不会消除它：当 `api.properties` 的 `apiKey` 非空时，这三个产物的 dex 中都能检索到该字面量。
+- **随手记**：一个输入框写所有内容，支持文字、图片、录音，可补录过去的日期；写的时候就能选标签。
+- **找得到**：跨日期全局搜索正文与标签，标签自动聚合成筛选 chip，点开就是整页只读阅览。
+- **每日整理**：调用任意 OpenAI-compatible 接口，把当天内容整理成结构化 Markdown（任务 / 建议 / 回顾可开关），原文与整理结果都留在本地。
+- **本地上下文聊天**：支持多会话。回答参考最近的记录（默认近 7 天、关键词检索、约 2000 字符预算），气泡下方「查看原文」能逐条回溯真正被引用的随记。
+- **图片与语音**：图片压缩后交给视觉模型生成描述，录音交给转写模型，结果一并进入检索。
+- **备份与迁移**：按日期导出 zip，每天一个文件夹（`notes.md` / `analysis.md` / `media/`），另有 `chat/conversations.md` 保存全部会话。Markdown 人可读，导入时按日期合并，旧 JSON 备份仍可导入。
+- **外观与人格**：4 套配色、3 种聊天语气，只影响呈现，不改数据与检索逻辑。
 
-因此：
+## 截图
 
-- **不要把本机构建的 APK 发给别人、传网盘、传 GitHub Release 或应用市场**，除非先清空 `api.properties` 里的 `apiKey` 并重新构建。
-- **推荐做法**：`api.properties` 只填 `apiBaseUrl` / `apiModel` / `apiAltModel`，`apiKey` 一律留空；密钥在 App「设置」页填写，由 Android Keystore 加密保存，完全不参与编译。
-- 从本仓库 clone 后不创建 `api.properties`（或 `apiKey` 留空）构建出的包不含任何密钥，可以安全分发。
-- 如果含密钥的包已经分发过，请到 AI 服务商后台**撤销并重新生成密钥**，按已泄露处理，不要只删本机文件。
+<div align="center">
 
-仓库侧是干净的：`.gitignore` 排除了 `api.properties`、`keystore.properties`、`local.properties`、`*.jks` 和 `app/build/`，**版本库和 GitHub 上只有源码，既没有密钥也没有安装包**。
+| 随记 | 随记卡片 | 聊天 |
+|:---:|:---:|:---:|
+| <img src="docs/images/journal-home.png" width="240" /> | <img src="docs/images/journal-cards.png" width="240" /> | <img src="docs/images/chat.png" width="240" /> |
+| 搜索、标签筛选与输入框 | 双列等高卡片，标签与时间完整 | 回答带引用，可点回原文 |
 
-## 构建
+| 设置 | 备份与迁移 |
+|:---:|:---:|
+| <img src="docs/images/settings.png" width="240" /> | <img src="docs/images/backup.png" width="240" /> |
+| 接口、语气、皮肤都在本机 | 按日期打包，换设备导入同一个 zip |
 
-需要 Android Studio、Android SDK Platform 37、JDK 17+。依赖版本见 `gradle/libs.versions.toml`（AGP 9.5.0 / Kotlin 2.2.10 / Compose BOM 2026.02.01 / Room 2.8.4），`minSdk 24`。
+</div>
+
+## 快速开始
+
+1. 安装 APK（从 [Releases](../../releases) 下载，或按下方步骤自行构建）。
+2. 首次启动后打开右上角「设置」，填写你的 AI 服务：
+   - **API 地址**：OpenAI-compatible 服务根地址，例如 `https://api.openai.com/v1`
+   - **模型名称**：聊天与整理使用的模型
+   - **API 密钥**：只保存在本机，经 Android Keystore 加密
+3. 回到「记录」页写下第一条随记。
+
+> 不配置 AI 也能用：随记、搜索、标签、阅览、备份全部是本地功能，只有整理、聊天、图片理解、语音转写需要接口。
+
+## 数据与隐私
+
+- 随记、整理结果、聊天记录、媒体文件都存在**本机 App 私有目录**（Room + 文件），没有云端同步。
+- 唯一联网的地方是你自己配置的 AI 接口，且只发送当前这次请求需要的内容。
+- **源码与安装包里不含任何 API 地址、模型名或密钥**；密钥由用户在自己的设备上填写，经 Keystore 加密后保存，不会写进版本库。
+- 仓库只提交源码：`keystore.properties`、`local.properties`、`*.jks` 与 `app/build/` 均在 `.gitignore` 中。
+
+## 从源码构建
+
+需要 Android Studio、Android SDK Platform 37、JDK 17+。依赖版本见 [`gradle/libs.versions.toml`](gradle/libs.versions.toml)（AGP 9.5.0 / Kotlin 2.2.10 / Compose BOM 2026.02.01 / Room 2.8.4），`minSdk 24`。
 
 ```bash
 git clone git@github.com:tyxiumud/presonal_ai_note.git
 cd presonal_ai_note
-cp api.properties.example api.properties   # 可选，见下
 ./gradlew assembleDebug
 ```
 
-`api.properties` 和 `keystore.properties` 都被 `.gitignore` 忽略，**两者都不是构建必需项**：没有 `api.properties` 时默认值为空，首次启动后在「设置」里自行填写；没有 `keystore.properties` 时 release 包退回 debug 签名并打印警告（仅可本机调试，不要分发）。
+没有 `keystore.properties` 时，release 包会退回 debug 签名并打印警告（仅可本机调试，不要分发）。要打正式包，复制 [`keystore.properties.example`](keystore.properties.example) 为 `keystore.properties` 并填入 4 个值，详见 [打包与签名](docs/release-signing.md)。
 
-### api.properties（可选，仅本机开发用）
+## 项目结构
 
-| 字段 | 说明 |
-|---|---|
-| `apiBaseUrl` | OpenAI-compatible 服务根地址，例如 `https://api.openai.com/v1` |
-| `apiModel` | 默认聊天 / 整理模型 |
-| `apiAltModel` | 设置页一键切换的备用模型 |
-| `apiKey` | 默认密钥 |
+```text
+app/src/main/java/io/github/tyxiumud/personalainote/
+├── journal/      随记：Room 实体、仓库、记录页与整页阅览
+├── analysis/     每日整理：Markdown 生成、来源指纹、阅览页
+├── chat/         多会话聊天：上下文构建、引用、会话表
+├── media/        图片理解与语音转写
+├── backup/       zip 导入导出（含聊天与媒体）
+├── ai/           OpenAI-compatible 网络层与设置
+├── ui/           主题、导航、通用组件
+└── AppContainer.kt  手写依赖注入
+```
 
-> ⚠️ `apiKey` 会明文编译进 APK，请留空；原因和分发前检查见上文「安装包里的密钥」。
-
-### 发布签名
-
-复制 `keystore.properties.example` 为 `keystore.properties` 并填入 4 个值，详见 [打包与签名](docs/release-signing.md)。密钥库和两个密码请自行备份——丢了就无法再给已安装的用户发布升级包。
+架构说明见 [架构框图](docs/architecture.html)，三篇教程从数据流讲到上下文构建。
 
 ## 文档
 
@@ -72,8 +101,28 @@ cp api.properties.example api.properties   # 可选，见下
 | [教程 3：本地上下文聊天](docs/tutorial/03-local-context-chat.md) | 上下文构建、引用可追溯 |
 | [打包与签名](docs/release-signing.md) | release 包、keystore、R8 规则、上架前清单 |
 
+## 路线图
+
+- [x] 本地随记、标签、全局搜索
+- [x] 每日 AI 整理与 Markdown 阅览
+- [x] 本地上下文聊天、多会话、引用可追溯
+- [x] 图片理解、语音转写
+- [x] 含聊天与媒体的 zip 备份
+- [ ] 定时整理与通知（WorkManager）
+- [ ] 会话重命名与会话内搜索
+- [ ] 导入时选择「覆盖 / 合并」
+
+完整清单见 [DEV_ROADMAP.md](docs/DEV_ROADMAP.md)。
+
+## 参与贡献
+
+欢迎 issue 和 PR。提交前请确认没有把 `keystore.properties`、`local.properties` 或 `*.jks` 带进版本库。
+
+```bash
+./gradlew testDebugUnitTest          # 单元测试
+./gradlew connectedDebugAndroidTest  # 设备测试（需连接设备或模拟器）
+```
+
 ## 许可证
 
 [MIT](LICENSE) © 2026 tyxiumud
-
-欢迎 issue / PR。提交前请确认没有把 `api.properties`、`keystore.properties` 或 `*.jks` 带进版本库。

@@ -337,7 +337,7 @@ fun JournalScreen(
                                     onDelete = { pendingDelete = capture },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(176.dp),
+                                        .height(212.dp),
                                 )
                             }
                         }
@@ -385,7 +385,7 @@ fun JournalScreen(
                                 onDelete = { pendingDelete = capture },
                                 modifier = Modifier
                                     .weight(1f)
-                                    .height(176.dp),
+                                    .height(212.dp),
                             )
                         }
                         if (pair.size == 1) {
