@@ -10,6 +10,7 @@
 ![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202026.02-4285F4?logo=jetpackcompose&logoColor=white)
 ![minSdk](https://img.shields.io/badge/minSdk-24-3DDC84?logo=android&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+[![Download](https://img.shields.io/badge/Download-APK-2ea44f?logo=android&logoColor=white)](https://github.com/tyxiumud/presonal_ai_note/releases/latest)
 
 [功能](#功能) · [截图](#截图) · [快速开始](#快速开始) · [从源码构建](#从源码构建) · [文档](#文档) · [路线图](#路线图)
 
@@ -45,7 +46,7 @@
 
 ## 快速开始
 
-1. 安装 APK（从 [Releases](../../releases) 下载，或按下方步骤自行构建）。
+1. 安装 APK（从 [Releases](https://github.com/tyxiumud/presonal_ai_note/releases/latest) 下载，或按下方步骤自行构建）。
 2. 首次启动后打开右上角「设置」，填写你的 AI 服务：
    - **API 地址**：OpenAI-compatible 服务根地址，例如 `https://api.openai.com/v1`
    - **模型名称**：聊天与整理使用的模型
