@@ -34,13 +34,13 @@
 ### Task 1: 本地 AI 设置与 Keystore 密钥
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/ai/settings/AiSettings.kt`
-- Create: `app/src/main/java/com/example/test0/ai/settings/AiSettingsStore.kt`
-- Create: `app/src/main/java/com/example/test0/ai/settings/KeystoreAiSettingsStore.kt`
-- Create: `app/src/main/java/com/example/test0/ai/settings/SettingsViewModel.kt`
-- Create: `app/src/main/java/com/example/test0/ai/settings/SettingsScreen.kt`
-- Create: `app/src/test/java/com/example/test0/ai/settings/SettingsViewModelTest.kt`
-- Create: `app/src/androidTest/java/com/example/test0/ai/settings/KeystoreAiSettingsStoreTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/AiSettings.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/AiSettingsStore.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/KeystoreAiSettingsStore.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/SettingsViewModel.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/SettingsScreen.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/ai/settings/SettingsViewModelTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/ai/settings/KeystoreAiSettingsStoreTest.kt`
 - Modify: `app/src/main/res/values/strings.xml`
 
 **Interfaces:**
@@ -57,14 +57,14 @@
 ### Task 2: DailyAnalysis Room v2 与历史日期查询
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/analysis/data/DailyAnalysisEntity.kt`
-- Create: `app/src/main/java/com/example/test0/analysis/data/DailyAnalysisDao.kt`
-- Create: `app/src/androidTest/java/com/example/test0/analysis/data/DatabaseMigration1To2Test.kt`
-- Create: `app/src/androidTest/java/com/example/test0/analysis/data/DailyAnalysisDaoTest.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/data/CaptureDao.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/data/CaptureRepository.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/data/RoomCaptureRepository.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/DailyAnalysisEntity.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/DailyAnalysisDao.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/analysis/data/DatabaseMigration1To2Test.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/analysis/data/DailyAnalysisDaoTest.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureDao.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureRepository.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepository.kt`
 
 **Interfaces:**
 - Produces: `DailyAnalysisDao.observeByDay()/upsert()`, `PersonalVaultDatabase.MIGRATION_1_2`, and `CaptureRepository.observeDays()/getByDay()`.
@@ -79,10 +79,10 @@
 ### Task 3: OpenAI-compatible client 与结构化结果
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/ai/api/DailyAnalysisApi.kt`
-- Create: `app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt`
-- Create: `app/src/main/java/com/example/test0/ai/api/HttpTransport.kt`
-- Create: `app/src/test/java/com/example/test0/ai/api/OpenAiCompatibleApiClientTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/api/DailyAnalysisApi.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ai/api/HttpTransport.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClientTest.kt`
 - Modify: `app/src/main/AndroidManifest.xml`
 
 **Interfaces:**
@@ -98,13 +98,13 @@
 ### Task 4: 原子 Markdown 文件与每日整理服务
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/analysis/model/DailyAnalysis.kt`
-- Create: `app/src/main/java/com/example/test0/analysis/data/DailyAnalysisRepository.kt`
-- Create: `app/src/main/java/com/example/test0/analysis/data/RoomDailyAnalysisRepository.kt`
-- Create: `app/src/main/java/com/example/test0/analysis/data/DailyMarkdownStore.kt`
-- Create: `app/src/main/java/com/example/test0/analysis/domain/DailyAnalysisService.kt`
-- Create: `app/src/test/java/com/example/test0/analysis/domain/DailyAnalysisServiceTest.kt`
-- Create: `app/src/androidTest/java/com/example/test0/analysis/data/DailyMarkdownStoreTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/model/DailyAnalysis.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/DailyAnalysisRepository.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/RoomDailyAnalysisRepository.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/DailyMarkdownStore.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/analysis/domain/DailyAnalysisService.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/analysis/domain/DailyAnalysisServiceTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/analysis/data/DailyMarkdownStoreTest.kt`
 
 **Interfaces:**
 - Produces: `DailyAnalysisService.analyze(day)`, `DailyAnalysisRepository.observeByDay(day)`, deterministic `sourceFingerprint(captures)`.
@@ -119,15 +119,15 @@
 ### Task 5: 记录页整理状态与阅览页
 
 **Files:**
-- Modify: `app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/ui/JournalScreen.kt`
-- Modify: `app/src/main/java/com/example/test0/journal/ui/JournalPreview.kt`
-- Create: `app/src/main/java/com/example/test0/reader/ReaderViewModel.kt`
-- Create: `app/src/main/java/com/example/test0/reader/ReaderScreen.kt`
-- Modify: `app/src/test/java/com/example/test0/journal/ui/JournalViewModelTest.kt`
-- Create: `app/src/test/java/com/example/test0/reader/ReaderViewModelTest.kt`
-- Modify: `app/src/androidTest/java/com/example/test0/journal/ui/JournalScreenTest.kt`
-- Create: `app/src/androidTest/java/com/example/test0/reader/ReaderScreenTest.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreen.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalPreview.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/reader/ReaderViewModel.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/reader/ReaderScreen.kt`
+- Modify: `app/src/test/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModelTest.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/reader/ReaderViewModelTest.kt`
+- Modify: `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreenTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/reader/ReaderScreenTest.kt`
 - Modify: `app/src/main/res/values/strings.xml`
 
 **Interfaces:**
@@ -143,12 +143,12 @@
 ### Task 6: 三入口应用外壳、依赖装配与连接测试
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/ui/PersonalVaultApp.kt`
-- Modify: `app/src/main/java/com/example/test0/AppContainer.kt`
-- Modify: `app/src/main/java/com/example/test0/MainActivity.kt`
-- Modify: `app/src/main/java/com/example/test0/ai/settings/SettingsViewModel.kt`
-- Modify: `app/src/main/java/com/example/test0/ai/settings/SettingsScreen.kt`
-- Create: `app/src/androidTest/java/com/example/test0/ui/PersonalVaultAppTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/ui/PersonalVaultApp.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/MainActivity.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/SettingsViewModel.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/SettingsScreen.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/ui/PersonalVaultAppTest.kt`
 - Modify: `app/src/main/res/values/strings.xml`
 
 **Interfaces:**

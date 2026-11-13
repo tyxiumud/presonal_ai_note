@@ -30,13 +30,13 @@ private fun buildConfigString(value: String?): String =
     "\"" + value.orEmpty().replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 
 android {
-    namespace = "com.example.test0"
+    namespace = "io.github.tyxiumud.personalainote"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.test0"
+        applicationId = "io.github.tyxiumud.personalainote"
         minSdk = 24
         targetSdk = 37
         versionCode = 1

@@ -50,7 +50,7 @@ $ANDROID_SDK/build-tools/37.0.0/apksigner verify --verbose \
 
 ## R8 / 混淆
 
-规则在 [keepRules/rules.keep](../../app/src/main/keepRules/rules.keep)，AGP 会自动合并 `src/main/keepRules` 下的文件。当前固定了三类东西：
+规则在 [keepRules/rules.keep](../app/src/main/keepRules/rules.keep)，AGP 会自动合并 `src/main/keepRules` 下的文件。当前固定了三类东西：
 
 - **按名字持久化的枚举**：`CaptureType` / `ChatPersona` / `AppSkin` 的 `name()` 写进了数据库和偏好，改名会让旧数据静默退回默认值。
 - **Room 实体与 DAO**：防止升级 Room 或调整优化范围后反射找不到类。
@@ -62,7 +62,7 @@ $ANDROID_SDK/build-tools/37.0.0/apksigner verify --verbose \
 
 ## 还差什么才能上架
 
-- `applicationId` 目前是模板的 `com.example.test0`，换成自己的包名。
+- `applicationId` 目前是模板的 `io.github.tyxiumud.personalainote`，换成自己的包名。
 - 上架 Play 需要 AAB：`:app:bundleRelease`。
 - 补一份隐私说明（本 App 会把用户主动提交的随记发给他自己配置的 API）。
 - 换一个正式的应用图标（当前是自制的矢量图标，可以保留）。

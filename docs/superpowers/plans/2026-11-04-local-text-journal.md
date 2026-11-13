@@ -39,34 +39,34 @@
 - `gradle/libs.versions.toml` — add Room, Lifecycle Compose, KSP, coroutines-test, and desugaring coordinates.
 - `build.gradle.kts` — declare the KSP plugin without applying it globally.
 - `app/build.gradle.kts` — apply KSP, enable core-library desugaring, add production/test dependencies, and export Room schemas.
-- `app/src/main/java/com/example/test0/MainActivity.kt` — replace the template greeting with the journal route.
+- `app/src/main/java/io/github/tyxiumud/personalainote/MainActivity.kt` — replace the template greeting with the journal route.
 - `app/src/main/AndroidManifest.xml` — register the custom `Application`.
 - `app/src/main/res/values/strings.xml` — replace the template name and add journal UI text.
-- `app/src/test/java/com/example/test0/ExampleUnitTest.kt` — remove the generated placeholder after real unit tests exist.
-- `app/src/androidTest/java/com/example/test0/ExampleInstrumentedTest.kt` — remove the generated placeholder after real instrumented tests exist.
+- `app/src/test/java/io/github/tyxiumud/personalainote/ExampleUnitTest.kt` — remove the generated placeholder after real unit tests exist.
+- `app/src/androidTest/java/io/github/tyxiumud/personalainote/ExampleInstrumentedTest.kt` — remove the generated placeholder after real instrumented tests exist.
 
 ### New production files
 
-- `app/src/main/java/com/example/test0/PersonalVaultApplication.kt` — application-scoped container owner.
-- `app/src/main/java/com/example/test0/AppContainer.kt` — constructs the Room database and repository without a DI framework.
-- `app/src/main/java/com/example/test0/journal/model/Capture.kt` — UI/domain representation of a saved text capture.
-- `app/src/main/java/com/example/test0/journal/data/CaptureEntity.kt` — Room primitive storage model and entity/domain mapping.
-- `app/src/main/java/com/example/test0/journal/data/CaptureDao.kt` — insert and day-scoped ordered queries.
-- `app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt` — Room database definition and builder.
-- `app/src/main/java/com/example/test0/journal/data/CaptureRepository.kt` — repository contract.
-- `app/src/main/java/com/example/test0/journal/data/RoomCaptureRepository.kt` — Room-backed repository implementation.
-- `app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt` — draft, selected date, validation, save action, and observed records.
-- `app/src/main/java/com/example/test0/journal/ui/JournalScreen.kt` — stateless screen, date picker, input, save action, and timeline.
-- `app/src/main/java/com/example/test0/journal/ui/JournalPreview.kt` — stable light/dark previews using fixed sample data.
+- `app/src/main/java/io/github/tyxiumud/personalainote/PersonalVaultApplication.kt` — application-scoped container owner.
+- `app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt` — constructs the Room database and repository without a DI framework.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/model/Capture.kt` — UI/domain representation of a saved text capture.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureEntity.kt` — Room primitive storage model and entity/domain mapping.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureDao.kt` — insert and day-scoped ordered queries.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt` — Room database definition and builder.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureRepository.kt` — repository contract.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepository.kt` — Room-backed repository implementation.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt` — draft, selected date, validation, save action, and observed records.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreen.kt` — stateless screen, date picker, input, save action, and timeline.
+- `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalPreview.kt` — stable light/dark previews using fixed sample data.
 
 ### New test and teaching files
 
-- `app/src/test/java/com/example/test0/MainDispatcherRule.kt` — deterministic Main dispatcher for ViewModel tests.
-- `app/src/test/java/com/example/test0/journal/ui/JournalViewModelTest.kt` — state, validation, selected-date, and save tests.
-- `app/src/androidTest/java/com/example/test0/journal/data/CaptureDaoTest.kt` — DAO filtering and deterministic ordering.
-- `app/src/androidTest/java/com/example/test0/journal/data/RoomCaptureRepositoryTest.kt` — entity mapping and timezone/day-key behavior.
-- `app/src/androidTest/java/com/example/test0/journal/data/CaptureDatabasePersistenceTest.kt` — close/reopen persistence test.
-- `app/src/androidTest/java/com/example/test0/journal/ui/JournalScreenTest.kt` — Compose semantics and event tests.
+- `app/src/test/java/io/github/tyxiumud/personalainote/MainDispatcherRule.kt` — deterministic Main dispatcher for ViewModel tests.
+- `app/src/test/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModelTest.kt` — state, validation, selected-date, and save tests.
+- `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/CaptureDaoTest.kt` — DAO filtering and deterministic ordering.
+- `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepositoryTest.kt` — entity mapping and timezone/day-key behavior.
+- `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/CaptureDatabasePersistenceTest.kt` — close/reopen persistence test.
+- `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreenTest.kt` — Compose semantics and event tests.
 - `app/schemas/` — Room-exported schema JSON.
 - `docs/tutorial/01-local-text-journal.md` — beginner explanation of the milestone’s data flow.
 
@@ -78,16 +78,16 @@
 - Modify: `gradle/libs.versions.toml`
 - Modify: `build.gradle.kts`
 - Modify: `app/build.gradle.kts`
-- Create: `app/src/main/java/com/example/test0/journal/model/Capture.kt`
-- Create: `app/src/main/java/com/example/test0/journal/data/CaptureEntity.kt`
-- Create: `app/src/main/java/com/example/test0/journal/data/CaptureDao.kt`
-- Create: `app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt`
-- Create: `app/src/main/java/com/example/test0/journal/data/CaptureRepository.kt`
-- Create: `app/src/main/java/com/example/test0/journal/data/RoomCaptureRepository.kt`
-- Create: `app/src/androidTest/java/com/example/test0/journal/data/CaptureDaoTest.kt`
-- Create: `app/src/androidTest/java/com/example/test0/journal/data/RoomCaptureRepositoryTest.kt`
-- Create: `app/src/androidTest/java/com/example/test0/journal/data/CaptureDatabasePersistenceTest.kt`
-- Delete after replacements pass: `app/src/androidTest/java/com/example/test0/ExampleInstrumentedTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/model/Capture.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureEntity.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureDao.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureRepository.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepository.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/CaptureDaoTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepositoryTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/CaptureDatabasePersistenceTest.kt`
+- Delete after replacements pass: `app/src/androidTest/java/io/github/tyxiumud/personalainote/ExampleInstrumentedTest.kt`
 
 **Interfaces:**
 - Produces: `data class Capture(val id: Long, val text: String, val contentAt: Instant, val importedAt: Instant, val updatedAt: Instant, val dayKey: LocalDate)`
@@ -136,7 +136,7 @@ Expected: all three Room test classes PASS and schema version 1 is exported.
 - [ ] **Step 8: Commit persistence milestone**
 
 ```powershell
-git add gradle/libs.versions.toml build.gradle.kts app/build.gradle.kts app/src/main/java/com/example/test0/journal app/src/androidTest/java/com/example/test0 app/schemas
+git add gradle/libs.versions.toml build.gradle.kts app/build.gradle.kts app/src/main/java/io/github/tyxiumud/personalainote/journal app/src/androidTest/java/io/github/tyxiumud/personalainote app/schemas
 git commit -m "feat: add local capture persistence"
 ```
 
@@ -145,10 +145,10 @@ git commit -m "feat: add local capture persistence"
 ### Task 2: Journal ViewModel and date policy
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt`
-- Create: `app/src/test/java/com/example/test0/MainDispatcherRule.kt`
-- Create: `app/src/test/java/com/example/test0/journal/ui/JournalViewModelTest.kt`
-- Delete after replacements pass: `app/src/test/java/com/example/test0/ExampleUnitTest.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/MainDispatcherRule.kt`
+- Create: `app/src/test/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModelTest.kt`
+- Delete after replacements pass: `app/src/test/java/io/github/tyxiumud/personalainote/ExampleUnitTest.kt`
 
 **Interfaces:**
 - Consumes: `CaptureRepository.observeByDay(day: LocalDate)`
@@ -173,7 +173,7 @@ Tests:
 
 - [ ] **Step 2: Run unit tests to verify they fail**
 
-Run: `.\gradlew.bat :app:testDebugUnitTest --tests "com.example.test0.journal.ui.JournalViewModelTest"`
+Run: `.\gradlew.bat :app:testDebugUnitTest --tests "io.github.tyxiumud.personalainote.journal.ui.JournalViewModelTest"`
 
 Expected: FAIL because `JournalViewModel`, `JournalUiState`, and dispatcher rule do not exist.
 
@@ -187,14 +187,14 @@ Trim only the persisted text; do not mutate the displayed draft before success. 
 
 - [ ] **Step 5: Run unit tests**
 
-Run: `.\gradlew.bat :app:testDebugUnitTest --tests "com.example.test0.journal.ui.JournalViewModelTest"`
+Run: `.\gradlew.bat :app:testDebugUnitTest --tests "io.github.tyxiumud.personalainote.journal.ui.JournalViewModelTest"`
 
 Expected: all six tests PASS.
 
 - [ ] **Step 6: Commit state milestone**
 
 ```powershell
-git add app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt app/src/test/java/com/example/test0
+git add app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt app/src/test/java/io/github/tyxiumud/personalainote
 git commit -m "feat: add journal state and date rules"
 ```
 
@@ -203,14 +203,14 @@ git commit -m "feat: add journal state and date rules"
 ### Task 3: Compose journal screen and app wiring
 
 **Files:**
-- Create: `app/src/main/java/com/example/test0/PersonalVaultApplication.kt`
-- Create: `app/src/main/java/com/example/test0/AppContainer.kt`
-- Create: `app/src/main/java/com/example/test0/journal/ui/JournalScreen.kt`
-- Create: `app/src/main/java/com/example/test0/journal/ui/JournalPreview.kt`
-- Modify: `app/src/main/java/com/example/test0/MainActivity.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/PersonalVaultApplication.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreen.kt`
+- Create: `app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalPreview.kt`
+- Modify: `app/src/main/java/io/github/tyxiumud/personalainote/MainActivity.kt`
 - Modify: `app/src/main/AndroidManifest.xml`
 - Modify: `app/src/main/res/values/strings.xml`
-- Create: `app/src/androidTest/java/com/example/test0/journal/ui/JournalScreenTest.kt`
+- Create: `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreenTest.kt`
 
 **Interfaces:**
 - Consumes: `JournalUiState` and `JournalViewModel` events from Task 2.
@@ -267,7 +267,7 @@ Expected: date selector, input, save action, and timeline are readable; no conte
 - [ ] **Step 9: Commit UI milestone**
 
 ```powershell
-git add app/src/main/java/com/example/test0 app/src/main/AndroidManifest.xml app/src/main/res/values/strings.xml app/src/androidTest/java/com/example/test0/journal/ui
+git add app/src/main/java/io/github/tyxiumud/personalainote app/src/main/AndroidManifest.xml app/src/main/res/values/strings.xml app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/ui
 git commit -m "feat: build dated local journal"
 ```
 

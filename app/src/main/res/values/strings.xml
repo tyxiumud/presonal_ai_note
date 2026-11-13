@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">个人AI笔记</string>
+    <string name="app_name">Personal AI Note</string>
     <string name="journal_title">随记</string>
     <string name="journal_home_subtitle">把今天和以前的事，随手放进来</string>
     <string name="journal_home_today">今天</string>

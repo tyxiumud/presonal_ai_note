@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "test0"
+rootProject.name = "PersonalAiNote"
 include(":app")

@@ -11,17 +11,17 @@
 # 一旦 R8 把枚举常量改名，旧数据就读不回来（会退回默认值，表现为设置"丢了"）。
 # 默认规则只保留 values()/valueOf()，不保证常量名不变，所以显式固定。
 # ---------------------------------------------------------------------------
--keepclassmembers enum com.example.test0.journal.model.CaptureType {
+-keepclassmembers enum io.github.tyxiumud.personalainote.journal.model.CaptureType {
     public static **[] values();
     public static ** valueOf(java.lang.String);
     <fields>;
 }
--keepclassmembers enum com.example.test0.ai.settings.ChatPersona {
+-keepclassmembers enum io.github.tyxiumud.personalainote.ai.settings.ChatPersona {
     public static **[] values();
     public static ** valueOf(java.lang.String);
     <fields>;
 }
--keepclassmembers enum com.example.test0.ai.settings.AppSkin {
+-keepclassmembers enum io.github.tyxiumud.personalainote.ai.settings.AppSkin {
     public static **[] values();
     public static ** valueOf(java.lang.String);
     <fields>;
@@ -34,24 +34,24 @@
 # rules 只保留 RoomDatabase 子类。这里把本项目自己的实体/DAO 也固定住，
 # 避免升级 Room 或调整优化范围后出现运行期找不到类的崩溃。
 # ---------------------------------------------------------------------------
--keep class com.example.test0.journal.data.CaptureEntity { *; }
--keep class com.example.test0.analysis.data.DailyAnalysisEntity { *; }
--keep class com.example.test0.chat.data.ChatMessageEntity { *; }
--keep class com.example.test0.journal.data.PersonalVaultDatabase { *; }
--keep interface com.example.test0.journal.data.CaptureDao { *; }
--keep interface com.example.test0.analysis.data.DailyAnalysisDao { *; }
--keep interface com.example.test0.chat.data.ChatMessageDao { *; }
+-keep class io.github.tyxiumud.personalainote.journal.data.CaptureEntity { *; }
+-keep class io.github.tyxiumud.personalainote.analysis.data.DailyAnalysisEntity { *; }
+-keep class io.github.tyxiumud.personalainote.chat.data.ChatMessageEntity { *; }
+-keep class io.github.tyxiumud.personalainote.journal.data.PersonalVaultDatabase { *; }
+-keep interface io.github.tyxiumud.personalainote.journal.data.CaptureDao { *; }
+-keep interface io.github.tyxiumud.personalainote.analysis.data.DailyAnalysisDao { *; }
+-keep interface io.github.tyxiumud.personalainote.chat.data.ChatMessageDao { *; }
 
 # ---------------------------------------------------------------------------
 # 3. 备份 zip 用 org.json 按字符串键读写，不依赖反射；此处只做防御性保留，
 #    确保以后改成 kotlinx.serialization / Gson 时不会踩到 data class 被裁掉。
 # ---------------------------------------------------------------------------
--keep class com.example.test0.backup.BackupManifest { *; }
--keep class com.example.test0.backup.BackupDay { *; }
--keep class com.example.test0.backup.BackupCapture { *; }
--keep class com.example.test0.backup.BackupAnalysis { *; }
--keep class com.example.test0.ai.settings.AiSettingsSnapshot { *; }
--keep class com.example.test0.ai.settings.AiSettingsInput { *; }
+-keep class io.github.tyxiumud.personalainote.backup.BackupManifest { *; }
+-keep class io.github.tyxiumud.personalainote.backup.BackupDay { *; }
+-keep class io.github.tyxiumud.personalainote.backup.BackupCapture { *; }
+-keep class io.github.tyxiumud.personalainote.backup.BackupAnalysis { *; }
+-keep class io.github.tyxiumud.personalainote.ai.settings.AiSettingsSnapshot { *; }
+-keep class io.github.tyxiumud.personalainote.ai.settings.AiSettingsInput { *; }
 
 # ---------------------------------------------------------------------------
 # 4. 崩溃日志可读性

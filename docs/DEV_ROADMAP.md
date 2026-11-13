@@ -71,7 +71,7 @@
 1. **依赖版本对齐**：`activity-compose 1.8.0`、`core-ktx 1.10.1` 相对 `compileSdk 37` / `lifecycle 2.11` 偏旧；`createSavedStateHandle()` 依赖的 `lifecycle-viewmodel-savedstate` 目前只是传递引入，建议显式声明。
 2. ~~**版本控制**~~ **已做**：`git init` + 首次基线提交（`fa35f2a`）；`.gitignore` 补齐 `app/build/`、`.idea/`、`.superpowers/` 等，密钥与构建产物不进仓库。
 3. **备份好签名密钥**：keystore 在 `~/.android/`、密码在 `keystore.properties`，两者都不在项目里；丢了就无法再给已装用户发升级包。
-4. **发布前收尾**：换图标与 `applicationId`（`com.example.test0` 是模板包名）、补一份隐私说明、Play 上架需要 AAB（`bundleRelease`）。
+4. **发布前收尾**：换图标与 `applicationId`（`io.github.tyxiumud.personalainote` 是模板包名）、补一份隐私说明、Play 上架需要 AAB（`bundleRelease`）。
 
 ### P0 · 功能缺口
 

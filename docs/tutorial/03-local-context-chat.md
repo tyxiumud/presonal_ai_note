@@ -35,7 +35,7 @@ ChatScreen 显示气泡与“参考：11月3日”
 
 ## 1. 聊天页：ChatRoute 与 ChatScreen
 
-入口文件是 [ChatScreen.kt](../../app/src/main/java/com/example/test0/chat/ui/ChatScreen.kt)。
+入口文件是 [ChatScreen.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/ui/ChatScreen.kt)。
 
 和记录页一样，聊天页分成两层：
 
@@ -102,11 +102,11 @@ private fun ReferenceLabel(message: ChatMessage) {
 
 建议断点：`ChatScreen`。先看空状态，再发一条消息，观察发送中气泡和引用标签。
 
-对应界面测试在 [ChatScreenTest.kt](../../app/src/androidTest/java/com/example/test0/chat/ui/ChatScreenTest.kt)。
+对应界面测试在 [ChatScreenTest.kt](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/chat/ui/ChatScreenTest.kt)。
 
 ## 2. ChatViewModel：状态、草稿和失败处理
 
-状态逻辑在 [ChatViewModel.kt](../../app/src/main/java/com/example/test0/chat/ui/ChatViewModel.kt)。
+状态逻辑在 [ChatViewModel.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/ui/ChatViewModel.kt)。
 
 页面状态有七项，其中 `conversations` 和 `currentConversationId` 是多会话加进来的：
 
@@ -191,11 +191,11 @@ private fun request(block: suspend () -> Unit) {
 - `retry()`：确认重试不会重复保存用户问题。
 - `clearConversation()` / `deleteMessage()`：确认只影响 `chat_messages`。
 
-对应测试在 [ChatViewModelTest.kt](../../app/src/test/java/com/example/test0/chat/ui/ChatViewModelTest.kt)。
+对应测试在 [ChatViewModelTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/ui/ChatViewModelTest.kt)。
 
 ## 3. ChatService：一轮问答的完整流程
 
-领域编排在 [ChatService.kt](../../app/src/main/java/com/example/test0/chat/domain/ChatService.kt)。
+领域编排在 [ChatService.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/domain/ChatService.kt)。
 
 一次 `send()` 按顺序做五件事：
 
@@ -291,11 +291,11 @@ private companion object {
 
 建议断点：`ChatService.send()`。依次观察“配置检查 → 历史读取 → 用户消息落库 → 上下文构建 → API 回答落库”。
 
-对应测试在 [ChatServiceTest.kt](../../app/src/test/java/com/example/test0/chat/domain/ChatServiceTest.kt)。
+对应测试在 [ChatServiceTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/domain/ChatServiceTest.kt)。
 
 ## 4. ChatContextBuilder：最近 7 天、关键词和 2000 字符预算
 
-检索逻辑在 [ChatContextBuilder.kt](../../app/src/main/java/com/example/test0/chat/domain/ChatContextBuilder.kt)。
+检索逻辑在 [ChatContextBuilder.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/domain/ChatContextBuilder.kt)。
 
 它返回的不只是文本，还有这次实际用到的日期和记录 ID：
 
@@ -417,11 +417,11 @@ for (item in ranked) {
 
 建议断点：`ChatContextBuilder.build()`。分别用“最近在忙什么”“Compose 布局学到哪了”和空资料库观察挑选结果。
 
-对应测试在 [ChatContextBuilderTest.kt](../../app/src/test/java/com/example/test0/chat/domain/ChatContextBuilderTest.kt)。
+对应测试在 [ChatContextBuilderTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/domain/ChatContextBuilderTest.kt)。
 
 ## 5. chat_messages 表与 RoomChatRepository
 
-数据模型在 [ChatMessageEntity.kt](../../app/src/main/java/com/example/test0/chat/data/ChatMessageEntity.kt)：
+数据模型在 [ChatMessageEntity.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatMessageEntity.kt)：
 
 ```kotlin
 @Entity(
@@ -448,7 +448,7 @@ data class ChatMessageEntity(
 - 引用日期和引用记录 ID 用逗号拼接成字符串。它们数量很小，不值得为第一版再建关联表。
 - 引用字段允许空字符串，读取时会过滤空项。
 
-[ChatMessageDao.kt](../../app/src/main/java/com/example/test0/chat/data/ChatMessageDao.kt) 只提供必要查询：
+[ChatMessageDao.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatMessageDao.kt) 只提供必要查询：
 
 ```kotlin
 @Query("SELECT * FROM chat_messages WHERE conversationId = :conversationId ORDER BY id ASC")
@@ -467,7 +467,7 @@ suspend fun recent(conversationId: Long, limit: Int): List<ChatMessageEntity>
 suspend fun latest(conversationId: Long): ChatMessageEntity?
 ```
 
-[RoomChatRepository.kt](../../app/src/main/java/com/example/test0/chat/data/RoomChatRepository.kt) 做两件转换：
+[RoomChatRepository.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/RoomChatRepository.kt) 做两件转换：
 
 - 数据库按 `id ASC` 观察，界面直接拿到从旧到新的列表。
 - `recent()` 查询按 `id DESC` 取最近的几条，返回前再 `reversed()`，保证发给 API 的历史是从旧到新。
@@ -481,11 +481,11 @@ override suspend fun recent(limit: Int): List<ChatMessage> =
 
 消息写入数据库后，`observeAll()` 会通过 Flow 自动通知 ViewModel，页面无需手动刷新。这就是第 1 课那条“Room → Flow → Compose”链路的又一次复用。
 
-接口定义在 [ChatRepository.kt](../../app/src/main/java/com/example/test0/chat/data/ChatRepository.kt)。
+接口定义在 [ChatRepository.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatRepository.kt)。
 
 ## 6. 数据库 2→3 迁移
 
-数据库定义在 [PersonalVaultDatabase.kt](../../app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt)。
+数据库定义在 [PersonalVaultDatabase.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt)。
 
 第 2 课结束时版本是 2，包含 `captures` 和 `daily_analyses`。加入聊天后升到版本 3，并注册迁移：
 
@@ -535,7 +535,7 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 
 ## 7. 复用 API 客户端与 HTTP 传输
 
-聊天和每日整理共用同一个客户端，接口定义在 [ChatApi.kt](../../app/src/main/java/com/example/test0/ai/api/ChatApi.kt)：
+聊天和每日整理共用同一个客户端，接口定义在 [ChatApi.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/ChatApi.kt)：
 
 ```kotlin
 interface ChatApi {
@@ -548,7 +548,7 @@ interface ChatApi {
 
 `ChatRequest` 包含三部分：当前问题、本地上下文、历史消息。历史消息用 `ChatTurn(role, content)` 表示。
 
-实现仍然是 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt)，它同时实现 `DailyAnalysisApi` 和 `ChatApi`：
+实现仍然是 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt)，它同时实现 `DailyAnalysisApi` 和 `ChatApi`：
 
 ```kotlin
 class OpenAiCompatibleApiClient(
@@ -605,7 +605,7 @@ messages.put(
 - 检查 HTTP 状态码是否在 200–299。
 - 读取 `choices[0].message.content`，空内容按错误处理。
 
-真正的网络细节在 [HttpTransport.kt](../../app/src/main/java/com/example/test0/ai/api/HttpTransport.kt)：
+真正的网络细节在 [HttpTransport.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/HttpTransport.kt)：
 
 ```kotlin
 private companion object {
@@ -665,14 +665,14 @@ class ChatNotConfiguredException(message: String) : ChatException(message)
 
 | 文件 | 证明什么 |
 |---|---|
-| [ChatServiceTest.kt](../../app/src/test/java/com/example/test0/chat/domain/ChatServiceTest.kt) | 保存问答与引用；上下文包含本地记录；未配置时什么都不写；API 失败保留问题；重试不重复问题；历史顺序正确；历史与回答按会话隔离 |
-| [ChatContextBuilderTest.kt](../../app/src/test/java/com/example/test0/chat/domain/ChatContextBuilderTest.kt) | 摘要与相关记录进入上下文；过期整理被排除；预算生效；空资料库返回空上下文；未来日期被忽略 |
-| [ChatViewModelTest.kt](../../app/src/test/java/com/example/test0/chat/ui/ChatViewModelTest.kt) | 发送后清空草稿；清空当前会话不影响其他会话；切换 / 新建 / 删除会话；第一条提问给会话起名；删除单条消息保留其余 |
-| [ChatScreenTest.kt](../../app/src/androidTest/java/com/example/test0/chat/ui/ChatScreenTest.kt) | 清空需确认；长按删除需确认；空对话没有清空入口；会话卡片可切换 / 新建；删除会话需确认 |
-| [ChatConversationRepositoryTest.kt](../../app/src/androidTest/java/com/example/test0/chat/data/ChatConversationRepositoryTest.kt) | 消息按会话隔离；清空只影响一个会话；自动命名；删除会话连带删消息 |
-| [DatabaseMigration5To6Test.kt](../../app/src/androidTest/java/com/example/test0/analysis/data/DatabaseMigration5To6Test.kt) | 旧消息归入默认会话、新列与索引存在 |
+| [ChatServiceTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/domain/ChatServiceTest.kt) | 保存问答与引用；上下文包含本地记录；未配置时什么都不写；API 失败保留问题；重试不重复问题；历史顺序正确；历史与回答按会话隔离 |
+| [ChatContextBuilderTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/domain/ChatContextBuilderTest.kt) | 摘要与相关记录进入上下文；过期整理被排除；预算生效；空资料库返回空上下文；未来日期被忽略 |
+| [ChatViewModelTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/ui/ChatViewModelTest.kt) | 发送后清空草稿；清空当前会话不影响其他会话；切换 / 新建 / 删除会话；第一条提问给会话起名；删除单条消息保留其余 |
+| [ChatScreenTest.kt](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/chat/ui/ChatScreenTest.kt) | 清空需确认；长按删除需确认；空对话没有清空入口；会话卡片可切换 / 新建；删除会话需确认 |
+| [ChatConversationRepositoryTest.kt](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/chat/data/ChatConversationRepositoryTest.kt) | 消息按会话隔离；清空只影响一个会话；自动命名；删除会话连带删消息 |
+| [DatabaseMigration5To6Test.kt](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/analysis/data/DatabaseMigration5To6Test.kt) | 旧消息归入默认会话、新列与索引存在 |
 
-测试替身集中在 [ChatTestDoubles.kt](../../app/src/test/java/com/example/test0/chat/domain/ChatTestDoubles.kt)，包括内存版聊天仓库、假 API、假设置存储和假随记/整理仓库。
+测试替身集中在 [ChatTestDoubles.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/chat/domain/ChatTestDoubles.kt)，包括内存版聊天仓库、假 API、假设置存储和假随记/整理仓库。
 
 运行方式：
 
@@ -695,13 +695,13 @@ class ChatNotConfiguredException(message: String) : ChatException(message)
 
 推荐阅读顺序：
 
-1. [ChatScreen.kt](../../app/src/main/java/com/example/test0/chat/ui/ChatScreen.kt)：先看界面状态和引用标签。
-2. [ChatViewModel.kt](../../app/src/main/java/com/example/test0/chat/ui/ChatViewModel.kt)：看草稿、发送、重试和清空。
-3. [ChatService.kt](../../app/src/main/java/com/example/test0/chat/domain/ChatService.kt)：看一轮问答的完整顺序。
-4. [ChatContextBuilder.kt](../../app/src/main/java/com/example/test0/chat/domain/ChatContextBuilder.kt)：看 7 天窗口、关键词打分和预算。
-5. [ChatMessageEntity.kt](../../app/src/main/java/com/example/test0/chat/data/ChatMessageEntity.kt) → [ChatMessageDao.kt](../../app/src/main/java/com/example/test0/chat/data/ChatMessageDao.kt) → [RoomChatRepository.kt](../../app/src/main/java/com/example/test0/chat/data/RoomChatRepository.kt)：看聊天如何持久化。
-6. [PersonalVaultDatabase.kt](../../app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt)：看 2→3 迁移。
-7. [OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt) 和 [HttpTransport.kt](../../app/src/main/java/com/example/test0/ai/api/HttpTransport.kt)：看请求格式和网络边界。
+1. [ChatScreen.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/ui/ChatScreen.kt)：先看界面状态和引用标签。
+2. [ChatViewModel.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/ui/ChatViewModel.kt)：看草稿、发送、重试和清空。
+3. [ChatService.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/domain/ChatService.kt)：看一轮问答的完整顺序。
+4. [ChatContextBuilder.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/domain/ChatContextBuilder.kt)：看 7 天窗口、关键词打分和预算。
+5. [ChatMessageEntity.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatMessageEntity.kt) → [ChatMessageDao.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatMessageDao.kt) → [RoomChatRepository.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/RoomChatRepository.kt)：看聊天如何持久化。
+6. [PersonalVaultDatabase.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt)：看 2→3 迁移。
+7. [OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt) 和 [HttpTransport.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/HttpTransport.kt)：看请求格式和网络边界。
 8. 最后回到测试，验证你已经理解的规则。
 
 练习：
@@ -717,9 +717,9 @@ class ChatNotConfiguredException(message: String) : ChatException(message)
 
 ### 人格不是模型自带的
 
-聊天回答显得生硬，通常不是模型能力问题，而是 `system` 提示词写得太像规则清单。[OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt) 的 `reply()` 现在给助手一个固定身份「小札」，并明确要求：像朋友说话、不用报告腔、不主动说教、不写鸡汤结尾。
+聊天回答显得生硬，通常不是模型能力问题，而是 `system` 提示词写得太像规则清单。[OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt) 的 `reply()` 现在给助手一个固定身份「小札」，并明确要求：像朋友说话、不用报告腔、不主动说教、不写鸡汤结尾。
 
-在它之上，设置里可以选三种预设，定义在 [AiSettings.kt](../../app/src/main/java/com/example/test0/ai/settings/AiSettings.kt)：
+在它之上，设置里可以选三种预设，定义在 [AiSettings.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/AiSettings.kt)：
 
 | 预设 | 说话方式 |
 |---|---|
@@ -737,15 +737,15 @@ class ChatNotConfiguredException(message: String) : ChatException(message)
 | 每日整理 | 不能改 | 点开只读详情、单独删除、重新整理 |
 | 聊天消息 | 不能改 | 长按删除单条、清空对话 |
 
-「允许修改」和外观皮肤都是**即时生效**的偏好，存在 `AiSettingsStore`，不需要先配置 API、也不用点「保存设置」。`JournalUiState.canEdit` 由设置流组合出来，界面据此决定要不要画铅笔图标；`JournalViewModel.editCapture()` 自己也做了一次守卫，避免只靠 UI 隐藏。皮肤则由 `MainActivity` 收集设置后传给 `Test0Theme(skin = ...)`，四套配色定义在 [Theme.kt](../../app/src/main/java/com/example/test0/ui/theme/Theme.kt)：暖纸 / 薄荷 / 藕粉 / 夜色。
+「允许修改」和外观皮肤都是**即时生效**的偏好，存在 `AiSettingsStore`，不需要先配置 API、也不用点「保存设置」。`JournalUiState.canEdit` 由设置流组合出来，界面据此决定要不要画铅笔图标；`JournalViewModel.editCapture()` 自己也做了一次守卫，避免只靠 UI 隐藏。皮肤则由 `MainActivity` 收集设置后传给 `Test0Theme(skin = ...)`，四套配色定义在 [Theme.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ui/theme/Theme.kt)：暖纸 / 薄荷 / 藕粉 / 夜色。
 
 原因：整理结果和回答都是 AI 生成的衍生内容。允许手改会让「来源指纹」和「引用了哪些记录」失去意义，也会让用户误以为那是自己写下的原始事实。删除后再重新生成，才是保持链路可解释的做法。
 
-相关实现：[ReaderViewModel.deleteAnalysis()](../../app/src/main/java/com/example/test0/reader/ReaderViewModel.kt) 只调 `analysisRepository.deleteByDay()`，`captures` 表完全不动；[ChatViewModel](../../app/src/main/java/com/example/test0/chat/ui/ChatViewModel.kt) 只有 `deleteMessage()` 和 `clearConversation()`，没有编辑入口。
+相关实现：[ReaderViewModel.deleteAnalysis()](../../app/src/main/java/io/github/tyxiumud/personalainote/reader/ReaderViewModel.kt) 只调 `analysisRepository.deleteByDay()`，`captures` 表完全不动；[ChatViewModel](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/ui/ChatViewModel.kt) 只有 `deleteMessage()` 和 `clearConversation()`，没有编辑入口。
 
 ## 12. 补充：图片、语音与 Room v4
 
-[第 1 课](01-local-text-journal.md) 的 `captures` 表原本只有文字。现在一条记录可以是三种类型，定义在 [Capture.kt](../../app/src/main/java/com/example/test0/journal/model/Capture.kt)：
+[第 1 课](01-local-text-journal.md) 的 `captures` 表原本只有文字。现在一条记录可以是三种类型，定义在 [Capture.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/model/Capture.kt)：
 
 | 类型 | 正文字段 | 媒体 |
 |---|---|---|
@@ -753,17 +753,17 @@ class ChatNotConfiguredException(message: String) : ChatException(message)
 | `IMAGE` | 可选说明 | 私有目录下的图片绝对路径 |
 | `AUDIO` | 可选说明 | 私有目录下的音频绝对路径 |
 
-数据库从 v3 升到 **v4** 只加了一列，[MIGRATION_3_4](../../app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt) 是：
+数据库从 v3 升到 **v4** 只加了一列，[MIGRATION_3_4](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt) 是：
 
 ```kotlin
 db.execSQL("ALTER TABLE captures ADD COLUMN mediaPath TEXT")
 ```
 
-旧文字记录的 `mediaPath` 为 `NULL`，不会丢数据。系统选择器返回的 `Uri` 由 [LocalMediaStore](../../app/src/main/java/com/example/test0/journal/data/MediaStore.kt) 复制进 `filesDir/media/`，这样即使以后外部文件被删掉，笔记里的图片和录音还在。删除记录时先取路径删文件、再删数据库行，避免留下孤儿文件。
+旧文字记录的 `mediaPath` 为 `NULL`，不会丢数据。系统选择器返回的 `Uri` 由 [LocalMediaStore](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/MediaStore.kt) 复制进 `filesDir/media/`，这样即使以后外部文件被删掉，笔记里的图片和录音还在。删除记录时先取路径删文件、再删数据库行，避免留下孤儿文件。
 
 语音是应用内 `MediaRecorder` 录的（需要 `RECORD_AUDIO` 权限，拒绝授权则退回选择音频文件）；图片用系统文件选择器选。两者走的是**同一条** `ViewModel.importMedia() → MediaStore.import() → CaptureRepository.addMedia()` 链路。
 
-媒体暂时没有正文，所以给模型的是占位而不是空字符串：[DailyAnalysisService.analysisEntry()](../../app/src/main/java/com/example/test0/analysis/domain/DailyAnalysisService.kt) 和 [ChatContextBuilder.contextEntry()](../../app/src/main/java/com/example/test0/chat/domain/ChatContextBuilder.kt) 会写成 `[图片记录]` / `[语音记录]`。`sourceFingerprint` 只对非文字记录追加类型和路径，所以**旧整理的指纹保持不变**，不会因为这次升级就全部误判为「需重新整理」。
+媒体暂时没有正文，所以给模型的是占位而不是空字符串：[DailyAnalysisService.analysisEntry()](../../app/src/main/java/io/github/tyxiumud/personalainote/analysis/domain/DailyAnalysisService.kt) 和 [ChatContextBuilder.contextEntry()](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/domain/ChatContextBuilder.kt) 会写成 `[图片记录]` / `[语音记录]`。`sourceFingerprint` 只对非文字记录追加类型和路径，所以**旧整理的指纹保持不变**，不会因为这次升级就全部误判为「需重新整理」。
 
 把媒体转成文字（图片描述、语音转写）是里程碑 4 剩下的部分，做完之后整理与聊天就能真正读到这些内容。
 
@@ -785,17 +785,17 @@ db.execSQL("ALTER TABLE captures ADD COLUMN mediaPath TEXT")
 
 语音转写是**另一个端点、另一类模型、另一份计费**，不是聊天 API 的一个参数。这也是为什么设置里给它单独的模型名。少数多模态模型支持音频输入，但兼容性差且贵，所以用标准转写端点更稳。
 
-[HttpTransport.kt](../../app/src/main/java/com/example/test0/ai/api/HttpTransport.kt) 的 `postMultipart()` 手写 multipart 边界，塞进 `HttpRequest.bodyBytes`，复用同一个 `post()` 连接与超时逻辑，没有引入新的网络库。
+[HttpTransport.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/HttpTransport.kt) 的 `postMultipart()` 手写 multipart 边界，塞进 `HttpRequest.bodyBytes`，复用同一个 `post()` 连接与超时逻辑，没有引入新的网络库。
 
 ### 结果怎么回到检索里
 
-[MediaUnderstandingService](../../app/src/main/java/com/example/test0/media/MediaUnderstandingService.kt) 把得到的文字加上 `[图片描述] `/`[语音转写] ` 前缀，写回该条记录的 `textContent`（`updateText` 会刷新 `updatedAt`，于是当天整理的 `sourceFingerprint` 变化、旧整理自动变成「需重新整理」）。之后 `DailyAnalysisService.analysisEntry()` 和 `ChatContextBuilder.contextEntry()` 直接读这段文字，整理与聊天就真的能用到媒体内容了。
+[MediaUnderstandingService](../../app/src/main/java/io/github/tyxiumud/personalainote/media/MediaUnderstandingService.kt) 把得到的文字加上 `[图片描述] `/`[语音转写] ` 前缀，写回该条记录的 `textContent`（`updateText` 会刷新 `updatedAt`，于是当天整理的 `sourceFingerprint` 变化、旧整理自动变成「需重新整理」）。之后 `DailyAnalysisService.analysisEntry()` 和 `ChatContextBuilder.contextEntry()` 直接读这段文字，整理与聊天就真的能用到媒体内容了。
 
 图片发送前会缩到最长边 1024 并压成 JPEG，避免 base64 把请求体撑到几 MB。触发入口在随记详情卡片的「识别图片内容」/「转写成文字」按钮——**只有你主动点才会发送**，符合隐私约定。
 
 ## 14. 补充：按日期导出与迁移
 
-[BackupRepository](../../app/src/main/java/com/example/test0/backup/BackupRepository.kt) 用 `java.util.zip` 生成一个 zip，不依赖第三方库。**每天一个文件夹，内容是给人读的 Markdown**：
+[BackupRepository](../../app/src/main/java/io/github/tyxiumud/personalainote/backup/BackupRepository.kt) 用 `java.util.zip` 生成一个 zip，不依赖第三方库。**每天一个文件夹，内容是给人读的 Markdown**：
 
 ```text
 README.md                      格式版本、导出时间、目录说明
@@ -839,9 +839,9 @@ README.md                      格式版本、导出时间、目录说明
 - **兼容旧格式**。检测到 `manifest.json` 就走旧的 JSON 解析（v1），检测到 `README.md` 走 Markdown 解析（v2）；换格式不会让老备份作废。
 - **整体读入内存但有上限**（100 MB），防止恶意 zip 撑爆内存。
 
-入口在右上角，和设置并排的小图标；点开后可以勾选要导出的日期，默认全选。[BackupSheet](../../app/src/main/java/com/example/test0/backup/BackupSheet.kt) 用 `ActivityResultContracts.CreateDocument` / `OpenDocument` 走系统文件选择器。导入导出都在 `Dispatchers.IO` 上做，不卡界面。
+入口在右上角，和设置并排的小图标；点开后可以勾选要导出的日期，默认全选。[BackupSheet](../../app/src/main/java/io/github/tyxiumud/personalainote/backup/BackupSheet.kt) 用 `ActivityResultContracts.CreateDocument` / `OpenDocument` 走系统文件选择器。导入导出都在 `Dispatchers.IO` 上做，不卡界面。
 
-对应测试：[BackupRepositoryTest](../../app/src/androidTest/java/com/example/test0/backup/BackupRepositoryTest.kt) 覆盖三件事：新格式导出到 zip 再导入另一个全新的内存数据库（含长文本、正文自带 `## ` 标题与链接、媒体、AI 整理、标签）、二次导入同日跳过、以及**旧 JSON 备份仍能导入**。
+对应测试：[BackupRepositoryTest](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/backup/BackupRepositoryTest.kt) 覆盖三件事：新格式导出到 zip 再导入另一个全新的内存数据库（含长文本、正文自带 `## ` 标题与链接、媒体、AI 整理、标签）、二次导入同日跳过、以及**旧 JSON 备份仍能导入**。
 
 ## 15. 补充：单一输入框、整页阅览与标签
 
@@ -861,12 +861,12 @@ LaunchedEffect(focusInput) {
 
 历史的坑有两点，值得记住：
 
-- 旧的长笔记把标题写成正文首行的 `# 标题`。去掉这套编辑器后，不再产生这种前缀；但**已有的旧数据**里还有，所以卡片和阅览列表统一用 [Capture.displayText](../../app/src/main/java/com/example/test0/journal/model/Capture.kt) 渲染，去掉开头的 `# `，界面上不再露出多余的 `#`。注意只在展示层处理，数据库与备份 zip 里仍保留原始正文。
+- 旧的长笔记把标题写成正文首行的 `# 标题`。去掉这套编辑器后，不再产生这种前缀；但**已有的旧数据**里还有，所以卡片和阅览列表统一用 [Capture.displayText](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/model/Capture.kt) 渲染，去掉开头的 `# `，界面上不再露出多余的 `#`。注意只在展示层处理，数据库与备份 zip 里仍保留原始正文。
 - Manifest 里已经有 `adjustResize`，列表就**不要**再加 `imePadding()`，否则键盘弹出时两份 inset 叠加，输入框会被裁掉半截、下面留出一大片空白。
 
 ### 点开就是整页笔记
 
-详情不再是「底部弹层 + 放大字号按钮」——长文在弹层里被裁一截、还得手动点放大。现在 [CaptureDetailSheet](../../app/src/main/java/com/example/test0/journal/ui/CaptureDetailSheet.kt) 是一个 `usePlatformDefaultWidth = false` 的 `Dialog`，`fillMaxSize()` 铺满整屏：顶部返回 + 复制，正文 `verticalScroll` 完整可读，下面依次是标签、识别、编辑/删除。整个界面就是这条笔记，不需要任何放大操作。
+详情不再是「底部弹层 + 放大字号按钮」——长文在弹层里被裁一截、还得手动点放大。现在 [CaptureDetailSheet](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/CaptureDetailSheet.kt) 是一个 `usePlatformDefaultWidth = false` 的 `Dialog`，`fillMaxSize()` 铺满整屏：顶部返回 + 复制，正文 `verticalScroll` 完整可读，下面依次是标签、识别、编辑/删除。整个界面就是这条笔记，不需要任何放大操作。
 
 ### 图片 / 语音各自的连接
 
@@ -874,7 +874,7 @@ LaunchedEffect(focusInput) {
 
 - 图片有「与聊天设置相同」开关（默认开）：打开时复用聊天接口的地址与密钥，只可单独指定视觉模型；关掉才需要填独立三项。
 - 语音没有单独配地址或密钥时，自动沿用聊天连接、只换转写模型（默认 `whisper-1`）。
-- [KeystoreAiSettingsStore](../../app/src/main/java/com/example/test0/ai/settings/KeystoreAiSettingsStore.kt) 的 `visionConnection()` / `transcriptionConnection()` 负责解析；[MediaUnderstandingService](../../app/src/main/java/com/example/test0/media/MediaUnderstandingService.kt) 按 `CaptureType` 取对应连接，连模型也直接用 `connection.model`。接口里这两个方法给了默认实现（回退到 `connection()`），所以测试替身不用跟着改。
+- [KeystoreAiSettingsStore](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/KeystoreAiSettingsStore.kt) 的 `visionConnection()` / `transcriptionConnection()` 负责解析；[MediaUnderstandingService](../../app/src/main/java/io/github/tyxiumud/personalainote/media/MediaUnderstandingService.kt) 按 `CaptureType` 取对应连接，连模型也直接用 `connection.model`。接口里这两个方法给了默认实现（回退到 `connection()`），所以测试替身不用跟着改。
 
 > `AiSettingsStore` 新加方法时给默认实现，是个省事的做法：真实存储覆盖，众多内存 fake 保持原样。
 
@@ -886,7 +886,7 @@ LaunchedEffect(focusInput) {
 ALTER TABLE captures ADD COLUMN tags TEXT NOT NULL DEFAULT ''
 ```
 
-数据库里用逗号分隔的字符串存，[CaptureEntity](../../app/src/main/java/com/example/test0/journal/data/CaptureEntity.kt) 的 `encodeTags` / `decodeTags` 负责转换；标签本身不允许逗号。因为标签是加在 `Capture` 上的，**文字、图片、语音三类记录都能打**， detail 卡片里用 [TagSection](../../app/src/main/java/com/example/test0/journal/ui/TagSection.kt) 增删，另有「工作/生活/灵感/待办」四个预置标签可一键添加；卡片上显示前两个。
+数据库里用逗号分隔的字符串存，[CaptureEntity](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureEntity.kt) 的 `encodeTags` / `decodeTags` 负责转换；标签本身不允许逗号。因为标签是加在 `Capture` 上的，**文字、图片、语音三类记录都能打**， detail 卡片里用 [TagSection](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/TagSection.kt) 增删，另有「工作/生活/灵感/待办」四个预置标签可一键添加；卡片上显示前两个。
 
 两个设计决定：
 
@@ -899,7 +899,7 @@ ALTER TABLE captures ADD COLUMN tags TEXT NOT NULL DEFAULT ''
 
 ### 数据：一张新表 + 消息加一列
 
-`conversations` 表（[ConversationEntity](../../app/src/main/java/com/example/test0/chat/data/ConversationEntity.kt)）只有四个字段：自增 id、标题、创建时间、最后活动时间。`chat_messages` 增加 `conversationId`，并建索引：
+`conversations` 表（[ConversationEntity](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ConversationEntity.kt)）只有四个字段：自增 id、标题、创建时间、最后活动时间。`chat_messages` 增加 `conversationId`，并建索引：
 
 ```kotlin
 @Entity(
@@ -915,11 +915,11 @@ data class ChatMessageEntity(
 
 `@ColumnInfo(defaultValue = "1")` 不是可省的细节：SQLite 用 `ALTER TABLE ... ADD COLUMN` 给已有数据的表加 `NOT NULL` 列时**必须**带默认值，否则旧行无法满足约束。Room 打开数据库时会核对表结构里列的默认值，实体不写同样的默认值就会被判定「迁移没有正确处理」。
 
-[ConversationDao](../../app/src/main/java/com/example/test0/chat/data/ConversationDao.kt) 按 `updatedAtEpochMillis DESC` 观察会话列表，`touch()` 在每次写入消息时刷新它，所以最近聊过的排在最前面。
+[ConversationDao](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ConversationDao.kt) 按 `updatedAtEpochMillis DESC` 观察会话列表，`touch()` 在每次写入消息时刷新它，所以最近聊过的排在最前面。
 
 ### 迁移 5→6：旧消息一条不丢
 
-[MIGRATION_5_6](../../app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt) 做四件事：
+[MIGRATION_5_6](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt) 做四件事：
 
 ```sql
 CREATE TABLE IF NOT EXISTS conversations (...)
@@ -934,7 +934,7 @@ CREATE INDEX IF NOT EXISTS index_chat_messages_conversationId ON chat_messages (
 
 旧版本只有一条对话，所以全部归到 id=1 的「默认对话」；聚合查询在没有消息时也会返回一行（时间取 0）。全新安装走另一条路：`PersonalVaultDatabase.create()` 注册了 `RoomDatabase.Callback.onCreate`，建表后插入同一个默认会话。两条路都保证应用打开时至少有一个可写入的会话。
 
-> 迁移测试 [DatabaseMigration5To6Test](../../app/src/androidTest/java/com/example/test0/analysis/data/DatabaseMigration5To6Test.kt) 直接构造 v5 老库、插入一条旧消息，升级后验证会话标题、`conversationId = 1` 和索引。因为它走的是真实升级路径，比只看代码可靠。
+> 迁移测试 [DatabaseMigration5To6Test](../../app/src/androidTest/java/io/github/tyxiumud/personalainote/analysis/data/DatabaseMigration5To6Test.kt) 直接构造 v5 老库、插入一条旧消息，升级后验证会话标题、`conversationId = 1` 和索引。因为它走的是真实升级路径，比只看代码可靠。
 
 ### 界面：标题右侧的 chip + 底部卡片
 
@@ -981,7 +981,7 @@ private val messages = currentConversationId.flatMapLatest { id ->
 
 - 种子 / 迁移出来的会话叫「默认对话」。
 - 新建的空会话叫「新对话 N」（N 取当前会话数 + 1），列表里不会挤着好几个同名的空会话。
-- 第一条用户提问写入时，[RoomChatRepository.append()](../../app/src/main/java/com/example/test0/chat/data/RoomChatRepository.kt) 发现标题还是占位名，就用 `conversationTitleFrom()` 取前 14 个字替换，`touch()` 同时刷新排序。
+- 第一条用户提问写入时，[RoomChatRepository.append()](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/RoomChatRepository.kt) 发现标题还是占位名，就用 `conversationTitleFrom()` 取前 14 个字替换，`touch()` 同时刷新排序。
 - `isPlaceholderConversationTitle()` 统一判断「是不是还没起名的占位标题」，避免命名规则散落在各处。
 
 ### 还没做的
@@ -994,7 +994,7 @@ private val messages = currentConversationId.flatMapLatest { id ->
 
 ### 备份里也有聊天
 
-[BackupRepository](../../app/src/main/java/com/example/test0/backup/BackupRepository.kt) 的 zip 多了一个 `chat/conversations.md`，和 `notes.md` 一样是给人读的 Markdown：
+[BackupRepository](../../app/src/main/java/io/github/tyxiumud/personalainote/backup/BackupRepository.kt) 的 zip 多了一个 `chat/conversations.md`，和 `notes.md` 一样是给人读的 Markdown：
 
 ```text
 README.md
@@ -1010,7 +1010,7 @@ chat/
 
 导入有两个关键点：
 
-- **会话 id 会重新分配**。导出时的 id 只在这个包里有效；[RoomChatRepository.restoreAll()](../../app/src/main/java/com/example/test0/chat/data/RoomChatRepository.kt) 先插入会话拿到新 id，再把消息按「旧 id → 新 id」映射后写入，所以不会串到别的会话。
+- **会话 id 会重新分配**。导出时的 id 只在这个包里有效；[RoomChatRepository.restoreAll()](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/RoomChatRepository.kt) 先插入会话拿到新 id，再把消息按「旧 id → 新 id」映射后写入，所以不会串到别的会话。
 - **重复导入不翻倍**。用「会话标题 + 创建时间」识别同一个会话，已存在就整组跳过；返回 `ChatRestoreResult` 报告实际新增的会话数和消息数，界面提示因此不会虚报。
 
 格式版本仍然是 **2**：`chat/` 是可选条目，旧备份没有它照样能导入。这是「加内容不破坏兼容」的常用做法。
@@ -1029,7 +1029,7 @@ fun onReferenceClicked(message: ChatMessage) {
 }
 ```
 
-`CaptureRepository.getById()` 是这次新增的按主键查询。查回来的随记列在一个底部卡片里（日期 + 正文预览），点任意一条打开第 15 课的 [CaptureDetailSheet](../../app/src/main/java/com/example/test0/journal/ui/CaptureDetailSheet.kt) 整页阅览——**不传编辑 / 删除 / 识别回调**，所以是纯只读，符合「AI 生成内容不可改」的约定。
+`CaptureRepository.getById()` 是这次新增的按主键查询。查回来的随记列在一个底部卡片里（日期 + 正文预览），点任意一条打开第 15 课的 [CaptureDetailSheet](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/CaptureDetailSheet.kt) 整页阅览——**不传编辑 / 删除 / 识别回调**，所以是纯只读，符合「AI 生成内容不可改」的约定。
 
 一个容易漏掉的边界：用户可能已经删掉被引用的随记。`mapNotNull` 会把它过滤掉；全被删时卡片显示「引用的随记已被删除」，而不是空白或崩溃。
 
@@ -1037,7 +1037,7 @@ fun onReferenceClicked(message: ChatMessage) {
 
 ### 会话预览不写进数据库
 
-会话列表要显示「N 条 · 最后一条消息」，但这些信息是**派生**的，不该存进 `conversations` 表（否则每次发消息都要额外维护一列，还容易不一致）。[ChatMessageDao](../../app/src/main/java/com/example/test0/chat/data/ChatMessageDao.kt) 用两个 Flow 查询现算：
+会话列表要显示「N 条 · 最后一条消息」，但这些信息是**派生**的，不该存进 `conversations` 表（否则每次发消息都要额外维护一列，还容易不一致）。[ChatMessageDao](../../app/src/main/java/io/github/tyxiumud/personalainote/chat/data/ChatMessageDao.kt) 用两个 Flow 查询现算：
 
 ```kotlin
 @Query(

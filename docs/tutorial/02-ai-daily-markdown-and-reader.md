@@ -39,7 +39,7 @@ Room 保存 DailyAnalysis 元数据
 - “聊天”：基于最近本地资料回答提问，并显示引用了哪些日期。
 - “设置”弹层：配置 API 地址、模型、密钥、输出选项和对话语气预设。
 
-根页面在 [PersonalVaultApp.kt](../../app/src/main/java/com/example/test0/ui/PersonalVaultApp.kt)。它用一个可保存的枚举切换三个主页面，没有引入 Navigation-Compose；`AppSection` 的三个值对应三个入口，每个入口都由自己的 `*Route` 收集 ViewModel 状态。设置内容通过一张自定义的底部卡片（`Dialog` + 圆角 `Surface`）呈现，和页面切换无关。
+根页面在 [PersonalVaultApp.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ui/PersonalVaultApp.kt)。它用一个可保存的枚举切换三个主页面，没有引入 Navigation-Compose；`AppSection` 的三个值对应三个入口，每个入口都由自己的 `*Route` 收集 ViewModel 状态。设置内容通过一张自定义的底部卡片（`Dialog` + 圆角 `Surface`）呈现，和页面切换无关。
 
 本课只展开“记录 / 阅览 / 设置”三个页面。聊天页从 `ChatRoute` 开始，完整流程见[第 3 课](03-local-context-chat.md)。
 
@@ -60,7 +60,7 @@ Room 保存 DailyAnalysis 元数据
 
 ## 3. 密钥为什么没有写在代码里
 
-设置模型位于 [AiSettings.kt](../../app/src/main/java/com/example/test0/ai/settings/AiSettings.kt)，实际存储位于 [KeystoreAiSettingsStore.kt](../../app/src/main/java/com/example/test0/ai/settings/KeystoreAiSettingsStore.kt)。
+设置模型位于 [AiSettings.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/AiSettings.kt)，实际存储位于 [KeystoreAiSettingsStore.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/KeystoreAiSettingsStore.kt)。
 
 流程是：
 
@@ -74,9 +74,9 @@ Room 保存 DailyAnalysis 元数据
 
 ## 4. 网络层怎样保持供应商可替换
 
-领域接口是 [DailyAnalysisApi.kt](../../app/src/main/java/com/example/test0/ai/api/DailyAnalysisApi.kt)。
+领域接口是 [DailyAnalysisApi.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/DailyAnalysisApi.kt)。
 
-具体兼容实现是 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt)。它只负责：
+具体兼容实现是 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt)。它只负责：
 
 - 组合 `POST /chat/completions` 请求；
 - 添加 Bearer 密钥；
@@ -86,7 +86,7 @@ Room 保存 DailyAnalysis 元数据
 
 UI 和整理服务不知道供应商名称。以后增加另一种 API，只需要实现同一个接口。
 
-当前同一个 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt) 还实现了 `ChatApi`，供第 3 课的聊天复用；底层 HTTP 细节封装在 [HttpTransport.kt](../../app/src/main/java/com/example/test0/ai/api/HttpTransport.kt)。本课先只看整理请求，聊天的消息格式和失败语义放到第 3 课。
+当前同一个 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt) 还实现了 `ChatApi`，供第 3 课的聊天复用；底层 HTTP 细节封装在 [HttpTransport.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/HttpTransport.kt)。本课先只看整理请求，聊天的消息格式和失败语义放到第 3 课。
 
 ## 5. 为什么不直接保存 AI 返回的 Markdown
 
@@ -97,11 +97,11 @@ UI 和整理服务不知道供应商名称。以后增加另一种 API，只需�
 - `gentleSuggestions`
 - `reflectionQuestions`
 
-[DailyAnalysisService.kt](../../app/src/main/java/com/example/test0/analysis/domain/DailyAnalysisService.kt) 在本地把这些字段渲染成固定 Markdown。这样标题、任务复选框和可选栏目由 App 控制，模型不能随意改变文件结构。
+[DailyAnalysisService.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/analysis/domain/DailyAnalysisService.kt) 在本地把这些字段渲染成固定 Markdown。这样标题、任务复选框和可选栏目由 App 控制，模型不能随意改变文件结构。
 
 ## 6. Markdown 和数据库如何配合
 
-Markdown 文件由 [DailyMarkdownStore.kt](../../app/src/main/java/com/example/test0/analysis/data/DailyMarkdownStore.kt) 写入：
+Markdown 文件由 [DailyMarkdownStore.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/analysis/data/DailyMarkdownStore.kt) 写入：
 
 ```text
 应用私有目录/
@@ -138,11 +138,11 @@ Room 的 `daily_analyses` 表保存日期、当前文件路径、生成时间、
 
 ## 9. 推荐学习顺序
 
-1. 从 [PersonalVaultApp.kt](../../app/src/main/java/com/example/test0/ui/PersonalVaultApp.kt) 看页面切换。
-2. 看 [SettingsViewModel.kt](../../app/src/main/java/com/example/test0/ai/settings/SettingsViewModel.kt) 理解表单状态。
-3. 看 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/com/example/test0/ai/api/OpenAiCompatibleApiClient.kt) 理解 HTTP 与 JSON。
-4. 看 [DailyAnalysisService.kt](../../app/src/main/java/com/example/test0/analysis/domain/DailyAnalysisService.kt) 理解业务编排。
-5. 看 [ReaderViewModel.kt](../../app/src/main/java/com/example/test0/reader/ReaderViewModel.kt) 理解多个 Flow 如何组合成阅览状态。
+1. 从 [PersonalVaultApp.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ui/PersonalVaultApp.kt) 看页面切换。
+2. 看 [SettingsViewModel.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/settings/SettingsViewModel.kt) 理解表单状态。
+3. 看 [OpenAiCompatibleApiClient.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/ai/api/OpenAiCompatibleApiClient.kt) 理解 HTTP 与 JSON。
+4. 看 [DailyAnalysisService.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/analysis/domain/DailyAnalysisService.kt) 理解业务编排。
+5. 看 [ReaderViewModel.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/reader/ReaderViewModel.kt) 理解多个 Flow 如何组合成阅览状态。
 6. 最后阅读对应测试，观察每条规则怎样被证明。
 
 聊天已经实现，不再是“下一阶段”。它的入口、上下文检索、持久化和失败语义见[第 3 课：基于本地资料的聊天与引用](03-local-context-chat.md)。

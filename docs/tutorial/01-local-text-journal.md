@@ -22,7 +22,7 @@ Compose 页面重新显示
 
 ## 1. Activity 是应用进入页面的门
 
-入口文件是 [MainActivity.kt](../../app/src/main/java/com/example/test0/MainActivity.kt)。
+入口文件是 [MainActivity.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/MainActivity.kt)。
 
 Android 启动应用时，先创建 `MainActivity`。它现在做四件事：
 
@@ -56,7 +56,7 @@ Activity 不负责保存随记，也不直接写数据库。它只负责把应�
 
 ## 2. Composable 描述“当前状态下页面长什么样”
 
-页面在 [JournalScreen.kt](../../app/src/main/java/com/example/test0/journal/ui/JournalScreen.kt)。
+页面在 [JournalScreen.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalScreen.kt)。
 
 `JournalScreen` 接收一个 `JournalUiState` 和一组回调。状态里现在有：
 
@@ -82,13 +82,13 @@ Activity 不负责保存随记，也不直接写数据库。它只负责把应�
 
 这样做的好处是页面可以独立预览、独立测试，也不会把数据库代码塞进 UI。
 
-明暗预览在 [JournalPreview.kt](../../app/src/main/java/com/example/test0/journal/ui/JournalPreview.kt)。
+明暗预览在 [JournalPreview.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalPreview.kt)。
 
 建议断点：`JournalScreen()`。修改输入文字时，观察 Compose 如何根据新状态重新执行相关部分。
 
 ## 3. ViewModel 保存页面状态和业务规则
 
-状态逻辑在 [JournalViewModel.kt](../../app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt)。
+状态逻辑在 [JournalViewModel.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt)。
 
 为什么不把输入框状态全放在 Activity？
 
@@ -111,14 +111,14 @@ Activity 不负责保存随记，也不直接写数据库。它只负责把应�
 - `deleteCapture()`：注意它先删当天整理、再删原始记录，避免留下包含已删内容的衍生文件。
 - `catch` 分支：理解为什么失败时不能清掉用户的草稿。
 
-对应测试在 [JournalViewModelTest.kt](../../app/src/test/java/com/example/test0/journal/ui/JournalViewModelTest.kt)。
+对应测试在 [JournalViewModelTest.kt](../../app/src/test/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModelTest.kt)。
 
 ## 4. Repository 隔离“我要保存”与“具体怎么保存”
 
 接口和实现分别位于：
 
-- [CaptureRepository.kt](../../app/src/main/java/com/example/test0/journal/data/CaptureRepository.kt)
-- [RoomCaptureRepository.kt](../../app/src/main/java/com/example/test0/journal/data/RoomCaptureRepository.kt)
+- [CaptureRepository.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureRepository.kt)
+- [RoomCaptureRepository.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/RoomCaptureRepository.kt)
 
 ViewModel 只知道：
 
@@ -149,17 +149,17 @@ ViewModel 只知道：
 
 数据模型在：
 
-- [Capture.kt](../../app/src/main/java/com/example/test0/journal/model/Capture.kt)
-- [CaptureEntity.kt](../../app/src/main/java/com/example/test0/journal/data/CaptureEntity.kt)
+- [Capture.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/model/Capture.kt)
+- [CaptureEntity.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureEntity.kt)
 
 ## 6. Room 为什么能在重启后保留内容
 
 Room 相关文件：
 
-- [CaptureEntity.kt](../../app/src/main/java/com/example/test0/journal/data/CaptureEntity.kt)：定义 `captures` 表的一行。
-- [CaptureDao.kt](../../app/src/main/java/com/example/test0/journal/data/CaptureDao.kt)：定义插入和查询 SQL。
-- [PersonalVaultDatabase.kt](../../app/src/main/java/com/example/test0/journal/data/PersonalVaultDatabase.kt)：当前是 **version 3**，同时声明 `captures`、`daily_analyses`、`chat_messages` 三张表，并注册 1→2、2→3 两个迁移。
-- [AppContainer.kt](../../app/src/main/java/com/example/test0/AppContainer.kt)：保证应用使用同一个数据库实例。
+- [CaptureEntity.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureEntity.kt)：定义 `captures` 表的一行。
+- [CaptureDao.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/CaptureDao.kt)：定义插入和查询 SQL。
+- [PersonalVaultDatabase.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/data/PersonalVaultDatabase.kt)：当前是 **version 3**，同时声明 `captures`、`daily_analyses`、`chat_messages` 三张表，并注册 1→2、2→3 两个迁移。
+- [AppContainer.kt](../../app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt)：保证应用使用同一个数据库实例。
 
 本课只关心 `captures`。`daily_analyses` 在第 2 课加入，`chat_messages` 在第 3 课加入；二者都在同一个数据库里，通过显式迁移新增，不会删除已有随记。
 
@@ -174,7 +174,7 @@ Room 的 schema 位于 `app/schemas/`，当前可以看到 `1.json`、`2.json`�
 - `CaptureDao.insert()` 的调用位置；
 - `PersonalVaultDatabase.create()`，查看数据库何时第一次创建。
 
-数据库测试在 `app/src/androidTest/java/com/example/test0/journal/data/`。
+数据库测试在 `app/src/androidTest/java/io/github/tyxiumud/personalainote/journal/data/`。
 
 ## 7. Flow 为什么能自动刷新列表
 
@@ -250,7 +250,7 @@ Room 的 schema 位于 `app/schemas/`，当前可以看到 `1.json`、`2.json`�
 fun observeAll(): Flow<List<CaptureEntity>>
 ```
 
-[JournalViewModel](../../app/src/main/java/com/example/test0/journal/ui/JournalViewModel.kt) 把「全部随记 + 搜索词 + 选中标签」用 `combine` 合成结果，过滤在 Kotlin 里做：
+[JournalViewModel](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/JournalViewModel.kt) 把「全部随记 + 搜索词 + 选中标签」用 `combine` 合成结果，过滤在 Kotlin 里做：
 
 ```kotlin
 private val searchResults: Flow<List<Capture>> = combine(
@@ -275,7 +275,7 @@ private val searchResults: Flow<List<Capture>> = combine(
 
 ### 写的时候就把标签选好
 
-`ComposerCard` 里直接放了第 15 课的 [TagSection](../../app/src/main/java/com/example/test0/journal/ui/TagSection.kt)，选中的标签存在 `JournalUiState.draftTags`。保存时：
+`ComposerCard` 里直接放了第 15 课的 [TagSection](../../app/src/main/java/io/github/tyxiumud/personalainote/journal/ui/TagSection.kt)，选中的标签存在 `JournalUiState.draftTags`。保存时：
 
 ```kotlin
 val id = repository.addText(text = text, contentDate = date, now = ...)
@@ -316,7 +316,7 @@ TagSection(
 buildConfigField("String", "DEFAULT_API_KEY", buildConfigString(apiDefaults.getProperty("apiKey")))
 ```
 
-[AppContainer](../../app/src/main/java/com/example/test0/AppContainer.kt) 把它组装成 `AiConnectionSettings` 传给 `KeystoreAiSettingsStore`，后者在**从未配置过**时播种一次：密钥先 AES/GCM 加密再落盘，用户后来改过或删过密钥都不会被覆盖。设置页还提供两个模型 chip 一键切换。
+[AppContainer](../../app/src/main/java/io/github/tyxiumud/personalainote/AppContainer.kt) 把它组装成 `AiConnectionSettings` 传给 `KeystoreAiSettingsStore`，后者在**从未配置过**时播种一次：密钥先 AES/GCM 加密再落盘，用户后来改过或删过密钥都不会被覆盖。设置页还提供两个模型 chip 一键切换。
 
 别人 clone 这份仓库时没有 `api.properties`，BuildConfig 字段为空字符串，仍然要在设置里自己填。这是「本机开箱即用」和「仓库里不留密钥」之间的折中。
 
@@ -327,7 +327,7 @@ buildConfigField("String", "DEFAULT_API_KEY", buildConfigString(apiDefaults.getP
 - 记录页去掉 `imePadding()` 解决了双重留白，但照搬到聊天页会让输入框整个被键盘盖住；
 - 聊天页加回 `imePadding()` 后输入框可见了，却因为外层底部导航仍占位，在输入框和键盘之间空出一段。
 
-最终改成由外层 [PersonalVaultApp](../../app/src/main/java/com/example/test0/ui/PersonalVaultApp.kt) 统一处理：
+最终改成由外层 [PersonalVaultApp](../../app/src/main/java/io/github/tyxiumud/personalainote/ui/PersonalVaultApp.kt) 统一处理：
 
 ```kotlin
 val keyboardVisible = WindowInsets.isImeVisible
